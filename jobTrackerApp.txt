@@ -1,0 +1,40 @@
+Fullstack Take-Home Assessment: Job Tracker App
+Take-Home Project: Job Tracker App
+
+Goal:
+Build a simple Job Tracker app that helps users manage their job applications. Users can create an
+account, log in, and CRUD job applications they're applying to.
+
+Features to Build:
+1. Job Application CRUD
+Users can:
+- Add a job (company name, job title, application status, application date, notes).
+- View all jobs they've added.
+- Update or delete their jobs.
+
+2. Filtering
+- Add a filter to view jobs by status (e.g., "Applied", "Interviewing", "Rejected", "Offer").
+
+3. Backend API
+- Use Node.js and Express to create REST API routes.
+
+- Routes:
+- GET /jobs
+- POST /jobs
+- PUT /jobs/:id
+- DELETE /jobs/:id
+
+4. Frontend UI
+- Use React (can use any UI library like Tailwind or MUI).
+- Clean, simple design. No need for mobile responsiveness.
+- Bonus: Add a loading state or error handling.
+
+Bonus Points
+- Write unit tests for 1-2 backend routes using Jest or similar.
+- Add user-friendly features like sorting or date formatting.
+
+What to Submit:
+1. GitHub repo with:
+- /client and /server folders clearly separated
+- README with setup instructions
+- Any notes on decisions, trade-offs, or stretch goals
