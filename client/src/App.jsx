@@ -7,7 +7,8 @@ import UpdateJob from './Components/UpdateJob.jsx'
 import DeleteJob from './Components/DeleteJob.jsx'
 import JobSearchBar from './Components/JobSearchBar.jsx'
 import SelectFilterByStatus from './Components/SelectFilterByStatus.jsx'
-import JobFormPopUp from './Components/JobFormPopUp.jsx' 
+import JobFormPopUp from './Components/JobFormPopUp.jsx'
+import { API_URL } from './config.js' 
 
 
 
@@ -34,7 +35,7 @@ export default function App() {
     setLoading(true)
     setError(null)
     try {
-      const resp = await fetch(`http://localhost:3000/api/jobs?userId=${user.id}`)
+      const resp = await fetch(`${API_URL}/api/jobs?userId=${user.id}`)
       if (!resp.ok) throw new Error('Failed to fetch jobs')
       const data = await resp.json()
       setJobs(data.jobs)

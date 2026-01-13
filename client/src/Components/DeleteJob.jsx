@@ -1,4 +1,5 @@
-
+import { useState } from 'react'
+import { API_URL } from '../config.js'
 
 export default function DeleteJob({onDeleteJob}){
 
@@ -20,7 +21,7 @@ export default function DeleteJob({onDeleteJob}){
 
 
         try {
-            const response = await fetch('http://localhost:3000/api/jobs',{
+            const response = await fetch(`${API_URL}/api/jobs`,{
                 method: 'DELETE', 
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify({title, company, location, status, dateApplied, jobType, notes})

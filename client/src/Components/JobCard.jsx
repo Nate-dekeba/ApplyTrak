@@ -1,11 +1,11 @@
-
+import { API_URL } from '../config.js'
 
 export default function JobCard({job, onDelete, onEdit}) {
 
     const handleDeleteJob = async () => {
         if (window.confirm(`Delete ${job.title} at ${job.company}?`)) {
             try {
-                const response = await fetch(`http://localhost:3000/api/jobs/${job.id}`, {
+                const response = await fetch(`${API_URL}/api/jobs/${job.id}`, {
                     method: 'DELETE'})
                 if (!response.ok){
                     throw new Error ('Failed to delete job.')

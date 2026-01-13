@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { API_URL } from '../config.js'
 
 
 export default function UpdateJob ({onJobUpdated, job, userId}) {
@@ -19,7 +20,7 @@ export default function UpdateJob ({onJobUpdated, job, userId}) {
         setError (null)
 
         try {
-            const response = await fetch(`http://localhost:3000/api/jobs/${job.id}`, {
+            const response = await fetch(`${API_URL}/api/jobs/${job.id}`, {
                 method: 'PUT',
                 headers: {'Content-type': 'application/json'},
                 body: JSON.stringify({title, company, location, status, dateApplied, jobType, notes, userId})
