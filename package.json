@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7",
-    "validator": "^13.15.26"
-  }
+  "name": "applytrak",
+  "version": "1.0.0",
+  "description": "ApplyTrak — full-stack job application tracker"
 }

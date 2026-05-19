@@ -1,16 +1,14 @@
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+/**
+ * Database connection pool.
+ * Uses a single shared pg Pool instance across the app so connections
+ * are reused rather than opened per request.
+ */
+import pg from 'pg'
+const { Pool } = pg
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false } // required by Neon (cloud-hosted Postgres)
+})
 
-export async function getDatabaseConnection(){
-    const dbPath = path.join(__dirname, 'database.db')
-
-    return open({
-        filename: dbPath,
-        driver: sqlite3.Database
-    })
-}
+export default pool

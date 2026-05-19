@@ -1,7 +1,7 @@
 {
-  "name": "job_tracker_app",
+  "name": "applytrak-server",
   "version": "1.0.0",
-  "description": "A simple Job tracker application",
+  "description": "ApplyTrak — job application tracker API",
   "license": "ISC",
   "author": "Nate Dekeba",
   "type": "module",
@@ -14,9 +14,10 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
     "express": "^5.1.0",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "jest": "^30.2.0",

@@ -42,3 +42,6 @@ Thumbs.db
 # Other
 .dist/
 .qodo/
+*.db
+changes.md
+ROADMAP.md
