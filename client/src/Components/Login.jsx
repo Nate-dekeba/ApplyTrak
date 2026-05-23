@@ -8,7 +8,7 @@ import { useState } from "react"
 import { API_URL } from '../config.js'
 import { saveSession } from '../auth.js'
 
-export default function Login({ onLogin, onSwitchToSignUp }) {
+export default function Login({ onLogin, onSwitchToSignUp, onForgotPassword }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState(null)
@@ -78,7 +78,16 @@ export default function Login({ onLogin, onSwitchToSignUp }) {
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-gray-600 dark:text-gray-400 mb-1.5">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[13px] font-medium text-gray-600 dark:text-gray-400">Password</label>
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-[12px] text-blue-500 font-medium bg-transparent border-none cursor-pointer p-0 hover:text-blue-700 hover:underline transition-colors duration-150"
+              >
+                Forgot password?
+              </button>
+            </div>
             <input
               type="password"
               placeholder="Enter your password"

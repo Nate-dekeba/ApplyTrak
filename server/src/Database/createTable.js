@@ -1,7 +1,7 @@
 /**
  * Database schema initialization.
  * Called once on server startup — creates tables if they don't already exist.
- * Safe to run on every boot (IF NOT EXISTS).
+ * ALTER TABLE ... ADD COLUMN IF NOT EXISTS safely migrates existing tables.
  */
 import pool from './db.js'
 
@@ -16,6 +16,10 @@ export async function createTable() {
             created_at TIMESTAMPTZ DEFAULT NOW()
         )
     `)
+
+    // Add password reset columns if they don't exist (safe migration)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ`)
 
     // Jobs — each row is one job application, scoped to a user
     await pool.query(`

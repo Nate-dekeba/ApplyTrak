@@ -24,6 +24,8 @@ import PipelineBar from './Components/PipelineBar.jsx'
 import KanbanBoard from './Components/KanbanBoard.jsx'
 import LandingPage from './Components/LandingPage.jsx'
 import WelcomeModal from './Components/WelcomeModal.jsx'
+import ForgotPassword from './Components/ForgotPassword.jsx'
+import ResetPassword from './Components/ResetPassword.jsx'
 import { API_URL } from './config.js'
 import { getSavedUser, clearSession, authHeaders } from './auth.js'
 import { JOB_STATUSES } from './constants/jobStatuses.js'
@@ -52,6 +54,10 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(getSavedDarkMode)
   const [showLanding, setShowLanding] = useState(true)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+
+  // Detect password reset token in URL (e.g. /reset-password?token=...)
+  const resetToken = new URLSearchParams(window.location.search).get('token')
 
   useEffect(() => {
     if (darkMode) {
@@ -144,6 +150,29 @@ export default function App() {
 
   /* ── Auth / Landing screens ── */
   if (!user) {
+    // Password reset link — takes priority over all other screens
+    if (resetToken) {
+      return (
+        <ResetPassword
+          token={resetToken}
+          onBackToLogin={() => {
+            // Clear the token from the URL and go to login
+            window.history.replaceState({}, '', window.location.pathname)
+            setShowLanding(false)
+            setShowLogin(true)
+          }}
+        />
+      )
+    }
+
+    if (showForgotPassword) {
+      return (
+        <ForgotPassword
+          onBackToLogin={() => { setShowForgotPassword(false); setShowLogin(true) }}
+        />
+      )
+    }
+
     if (showLanding) {
       return (
         <LandingPage
@@ -153,7 +182,11 @@ export default function App() {
       )
     }
     return showLogin ? (
-      <Login onLogin={handleLogin} onSwitchToSignUp={() => setShowLogin(false)} />
+      <Login
+        onLogin={handleLogin}
+        onSwitchToSignUp={() => setShowLogin(false)}
+        onForgotPassword={() => setShowForgotPassword(true)}
+      />
     ) : (
       <Signup onSignup={handleSignup} onSwitchToLogin={() => setShowLogin(true)} />
     )
