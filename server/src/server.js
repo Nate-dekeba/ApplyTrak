@@ -5,6 +5,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import bodyParser from 'body-parser'
 import { apiRouter } from './Routes/apiRoutes.js'
 import { authRouter } from './Routes/AuthRouter.js'
 import { createTable } from './Database/createTable.js'
@@ -30,7 +31,7 @@ app.use(cors({
 }))
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-app.use(express.json()) // Parse JSON request bodies
+app.use(bodyParser.json()) // Parse JSON request bodies
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/jobs', apiRouter)   // protected — requires JWT
