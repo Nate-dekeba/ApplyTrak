@@ -62,13 +62,19 @@ app.use((req, res) => {
 // ── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000
 
-createTable()
-    .then(() => {
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`)
-        })
-    })
-    .catch((err) => {
-        console.error('Failed to initialize database:', err.message)
-        process.exit(1)
-    })
+// Retry DB init up to 5 times — handles Neon cold-start delays
+async function startServer(retries = 5, delay = 3000) {
+    for (let i = 1; i <= retries; i++) {
+        try {
+            await createTable()
+            app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+            return
+        } catch (err) {
+            console.error(`DB init attempt ${i} failed:`, err.message || err)
+            if (i === retries) { console.error('All retries exhausted. Exiting.'); process.exit(1) }
+            await new Promise(r => setTimeout(r, delay))
+        }
+    }
+}
+
+startServer()
