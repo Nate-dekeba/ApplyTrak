@@ -41,6 +41,15 @@ app.use((req, res, next) => {
     })
 })
 
+// ── debug (remove after fix confirmed) ───────────────────────────────────────
+app.post('/api/debug-body', (req, res) => {
+    let raw = ''
+    req.on('data', chunk => { raw += chunk })
+    req.on('end', () => {
+        res.json({ parsedBody: req.body, rawBody: raw, contentType: req.headers['content-type'] })
+    })
+})
+
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/jobs', apiRouter)   // protected — requires JWT
 app.use('/api/auth', authRouter)  // public — login & register
