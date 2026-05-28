@@ -45,7 +45,7 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000
 
 // Retry DB init up to 5 times — handles Neon cold-start delays
-async function startServer(retries = 5, delay = 3000) {
+async function startServer(retries = 8, delay = 5000) {
     for (let i = 1; i <= retries; i++) {
         try {
             await createTable()
