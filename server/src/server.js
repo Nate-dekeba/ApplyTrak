@@ -30,25 +30,7 @@ app.use(cors({
 }))
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-// Manually parse JSON bodies — works across all Node/Express versions
-app.use((req, res, next) => {
-    if (!req.headers['content-type']?.includes('application/json')) return next()
-    let raw = ''
-    req.on('data', chunk => { raw += chunk })
-    req.on('end', () => {
-        try { req.body = JSON.parse(raw) } catch { req.body = {} }
-        next()
-    })
-})
-
-// ── debug (remove after fix confirmed) ───────────────────────────────────────
-app.post('/api/debug-body', (req, res) => {
-    let raw = ''
-    req.on('data', chunk => { raw += chunk })
-    req.on('end', () => {
-        res.json({ parsedBody: req.body, rawBody: raw, contentType: req.headers['content-type'] })
-    })
-})
+app.use(express.json())
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/jobs', apiRouter)   // protected — requires JWT
