@@ -35,6 +35,10 @@ export async function login(req, res) {
             return res.status(400).json({ error: 'User credentials invalid' })
         }
 
+        if (!user.is_verified) {
+            return res.status(403).json({ error: 'Please verify your email before logging in.' })
+        }
+
         const userData = { id: user.id, email: user.email, name: user.name }
         const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '7d' })
 
@@ -56,26 +60,72 @@ export async function registerUser(req, res) {
             return res.status(400).json({ error: 'Enter required fields' })
         }
 
-        // Hash the password before storing — never store plaintext
         const hashedPassword = await bcrypt.hash(password, 10)
 
+        // Generate email verification token
+        const rawToken = crypto.randomBytes(32).toString('hex')
+        const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex')
+
         const result = await pool.query(
-            `INSERT INTO users (name, email, password)
-            VALUES ($1, $2, $3)
+            `INSERT INTO users (name, email, password, verification_token)
+            VALUES ($1, $2, $3, $4)
             RETURNING id`,
-            [name, email, hashedPassword]
+            [name, email, hashedPassword, hashedToken]
         )
 
-        const userData = { id: result.rows[0].id, email, name }
-        const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '7d' })
+        // Send verification email
+        const verifyUrl = `${process.env.CLIENT_URL}?verify=${rawToken}`
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        await resend.emails.send({
+            from: 'ApplyTrak <onboarding@resend.dev>',
+            to: email,
+            subject: 'Verify your ApplyTrak email',
+            html: `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
+                    <h2 style="color:#1e293b;margin-bottom:8px">Verify your email</h2>
+                    <p style="color:#64748b;margin-bottom:24px">
+                        Click the button below to verify your email and activate your account.
+                    </p>
+                    <a href="${verifyUrl}"
+                       style="display:inline-block;padding:12px 28px;background:linear-gradient(to right,#3b82f6,#6366f1);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
+                        Verify Email
+                    </a>
+                    <p style="color:#94a3b8;font-size:12px;margin-top:24px">
+                        If you didn't create an account, you can safely ignore this email.
+                    </p>
+                </div>
+            `,
+        })
 
-        res.status(201).json({ message: 'User registered successfully', token, user: userData })
+        res.status(201).json({ message: 'Account created. Check your email to verify your account.' })
     } catch (err) {
-        // Postgres unique constraint violation — email already registered
         if (err.code === '23505') {
             return res.status(409).json({ error: 'Email already in use' })
         }
         res.status(500).json({ error: 'Failed to register user', details: err.message })
+    }
+}
+
+// GET /api/auth/verify-email?token=xxx
+export async function verifyEmail(req, res) {
+    try {
+        const { token } = req.query
+        if (!token) return res.status(400).json({ error: 'Verification token is required' })
+
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+
+        const result = await pool.query(
+            'UPDATE users SET is_verified = TRUE, verification_token = NULL WHERE verification_token = $1 RETURNING id',
+            [hashedToken]
+        )
+
+        if (result.rowCount === 0) {
+            return res.status(400).json({ error: 'Invalid or already used verification link.' })
+        }
+
+        res.status(200).json({ message: 'Email verified successfully. You can now log in.' })
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to verify email', details: err.message })
     }
 }
 

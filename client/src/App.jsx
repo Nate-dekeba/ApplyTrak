@@ -26,6 +26,7 @@ import LandingPage from './Components/LandingPage.jsx'
 import WelcomeModal from './Components/WelcomeModal.jsx'
 import ForgotPassword from './Components/ForgotPassword.jsx'
 import ResetPassword from './Components/ResetPassword.jsx'
+import VerifyEmail from './Components/VerifyEmail.jsx'
 import { API_URL } from './config.js'
 import { getSavedUser, clearSession, authHeaders } from './auth.js'
 import { JOB_STATUSES } from './constants/jobStatuses.js'
@@ -56,8 +57,9 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
 
-  // Detect password reset token in URL (e.g. /reset-password?token=...)
-  const resetToken = new URLSearchParams(window.location.search).get('token')
+  const urlParams = new URLSearchParams(window.location.search)
+  const resetToken = urlParams.get('token')
+  const verifyToken = urlParams.get('verify')
 
   useEffect(() => {
     if (darkMode) {
@@ -150,6 +152,20 @@ export default function App() {
 
   /* ── Auth / Landing screens ── */
   if (!user) {
+    // Email verification link
+    if (verifyToken) {
+      return (
+        <VerifyEmail
+          token={verifyToken}
+          onBackToLogin={() => {
+            window.history.replaceState({}, '', window.location.pathname)
+            setShowLanding(false)
+            setShowLogin(true)
+          }}
+        />
+      )
+    }
+
     // Password reset link — takes priority over all other screens
     if (resetToken) {
       return (
