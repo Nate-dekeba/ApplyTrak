@@ -26,6 +26,7 @@ import LandingPage from './Components/LandingPage.jsx'
 import WelcomeModal from './Components/WelcomeModal.jsx'
 import ForgotPassword from './Components/ForgotPassword.jsx'
 import ResetPassword from './Components/ResetPassword.jsx'
+import VerifyEmail from './Components/VerifyEmail.jsx'
 import { API_URL } from './config.js'
 import { getSavedUser, clearSession, authHeaders } from './auth.js'
 import { JOB_STATUSES } from './constants/jobStatuses.js'
@@ -55,8 +56,8 @@ export default function App() {
   const [showLanding, setShowLanding] = useState(true)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState(null)
 
-  // Detect password reset token in URL (e.g. /reset-password?token=...)
   const resetToken = new URLSearchParams(window.location.search).get('token')
 
   useEffect(() => {
@@ -150,6 +151,24 @@ export default function App() {
 
   /* ── Auth / Landing screens ── */
   if (!user) {
+    // Email verification — shown after registration
+    if (pendingVerificationEmail) {
+      return (
+        <VerifyEmail
+          email={pendingVerificationEmail}
+          onVerified={() => {
+            setPendingVerificationEmail(null)
+            setShowLanding(false)
+            setShowLogin(true)
+          }}
+          onBackToSignup={() => {
+            setPendingVerificationEmail(null)
+            setShowLogin(false)
+          }}
+        />
+      )
+    }
+
     // Password reset link — takes priority over all other screens
     if (resetToken) {
       return (
@@ -188,7 +207,7 @@ export default function App() {
         onForgotPassword={() => setShowForgotPassword(true)}
       />
     ) : (
-      <Signup onSignup={handleSignup} onSwitchToLogin={() => setShowLogin(true)} />
+      <Signup onNeedVerification={(email) => setPendingVerificationEmail(email)} onSwitchToLogin={() => setShowLogin(true)} />
     )
   }
 

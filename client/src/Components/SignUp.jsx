@@ -5,9 +5,8 @@
  */
 import { useState } from "react"
 import { API_URL } from '../config.js'
-import { saveSession } from '../auth.js'
 
-export default function Signup({ onSignup, onSwitchToLogin }) {
+export default function Signup({ onNeedVerification, onSwitchToLogin }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -41,8 +40,7 @@ export default function Signup({ onSignup, onSwitchToLogin }) {
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Signup failed')
-      saveSession(data.token, data.user)
-      onSignup(data.user)
+      onNeedVerification(email.trim())
     } catch (err) {
       setError(err.message)
     } finally {
