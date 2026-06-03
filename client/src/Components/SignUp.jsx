@@ -6,14 +6,13 @@
 import { useState } from "react"
 import { API_URL } from '../config.js'
 
-export default function Signup({ onSignup, onSwitchToLogin }) {
+export default function Signup({ onNeedVerification, onSwitchToLogin }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
 
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword
 
@@ -41,7 +40,7 @@ export default function Signup({ onSignup, onSwitchToLogin }) {
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Signup failed')
-      setSubmitted(true)
+      onNeedVerification(email.trim())
     } catch (err) {
       setError(err.message)
     } finally {
@@ -51,27 +50,6 @@ export default function Signup({ onSignup, onSwitchToLogin }) {
 
   const inputClass = "w-full py-2.5 px-3.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200"
   const labelClass = "block text-[13px] font-medium text-gray-600 dark:text-gray-400 mb-1.5"
-
-  if (submitted) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-        <div className="w-full max-w-[440px] mx-4 text-center bg-white dark:bg-gray-900 px-8 py-10 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-gray-100 dark:border-gray-800">
-          <div className="text-5xl mb-4">📬</div>
-          <h2 className="text-[22px] font-bold text-gray-900 dark:text-gray-50 mb-2">Check your email</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            We sent a verification link to <strong>{email}</strong>. Click it to activate your account.
-          </p>
-          <button
-            type="button"
-            onClick={onSwitchToLogin}
-            className="text-blue-500 text-sm font-medium hover:underline bg-transparent border-none cursor-pointer"
-          >
-            Back to login
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">

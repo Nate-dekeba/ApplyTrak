@@ -49,7 +49,8 @@ async function startServer(retries = 8, delay = 5000) {
     for (let i = 1; i <= retries; i++) {
         try {
             await createTable()
-            app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+            await app.listen(PORT)
+            console.log(`Server running on port ${PORT}`)
             return
         } catch (err) {
             console.error(`DB init attempt ${i} failed:`, err.message || err)

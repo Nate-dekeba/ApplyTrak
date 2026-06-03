@@ -24,6 +24,7 @@ export async function createTable() {
     // Email verification columns
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token_expires TIMESTAMPTZ`)
 
     // Jobs — each row is one job application, scoped to a user
     await pool.query(`

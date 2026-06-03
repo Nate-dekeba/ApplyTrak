@@ -56,10 +56,9 @@ export default function App() {
   const [showLanding, setShowLanding] = useState(true)
   const [showWelcome, setShowWelcome] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState(null)
 
-  const urlParams = new URLSearchParams(window.location.search)
-  const resetToken = urlParams.get('token')
-  const verifyToken = urlParams.get('verify')
+  const resetToken = new URLSearchParams(window.location.search).get('token')
 
   useEffect(() => {
     if (darkMode) {
@@ -152,15 +151,19 @@ export default function App() {
 
   /* ── Auth / Landing screens ── */
   if (!user) {
-    // Email verification link
-    if (verifyToken) {
+    // Email verification — shown after registration
+    if (pendingVerificationEmail) {
       return (
         <VerifyEmail
-          token={verifyToken}
-          onBackToLogin={() => {
-            window.history.replaceState({}, '', window.location.pathname)
+          email={pendingVerificationEmail}
+          onVerified={() => {
+            setPendingVerificationEmail(null)
             setShowLanding(false)
             setShowLogin(true)
+          }}
+          onBackToSignup={() => {
+            setPendingVerificationEmail(null)
+            setShowLogin(false)
           }}
         />
       )
@@ -204,7 +207,7 @@ export default function App() {
         onForgotPassword={() => setShowForgotPassword(true)}
       />
     ) : (
-      <Signup onSignup={handleSignup} onSwitchToLogin={() => setShowLogin(true)} />
+      <Signup onNeedVerification={(email) => setPendingVerificationEmail(email)} onSwitchToLogin={() => setShowLogin(true)} />
     )
   }
 
