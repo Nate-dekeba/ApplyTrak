@@ -24,6 +24,7 @@ import PipelineBar from './Components/PipelineBar.jsx'
 import KanbanBoard from './Components/KanbanBoard.jsx'
 import LandingPage from './Components/LandingPage.jsx'
 import WelcomeModal from './Components/WelcomeModal.jsx'
+import Settings from './Components/Settings.jsx'
 import ForgotPassword from './Components/ForgotPassword.jsx'
 import ResetPassword from './Components/ResetPassword.jsx'
 import VerifyEmail from './Components/VerifyEmail.jsx'
@@ -254,11 +255,6 @@ export default function App() {
               <h1 className="text-xl font-bold text-gray-900 dark:text-gray-50 m-0">
                 {activeView === 'analytics' ? 'Analytics' : activeView === 'settings' ? 'Settings' : 'Applications'}
               </h1>
-              <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 m-0">
-                {activeView === 'applications'
-                  ? `${filteredJobs.length} of ${jobs.length} applications`
-                  : `Welcome back, ${user.name}`}
-              </p>
             </div>
           </div>
 
@@ -304,6 +300,13 @@ export default function App() {
                 <option value="">All Statuses</option>
                 {JOB_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
+
+              {/* Result count — shown only when a filter is active */}
+              {(statusFilter !== '' || searchQuery !== '') && jobs.length > 0 && (
+                <span className="text-[12px] text-gray-400 dark:text-gray-500 whitespace-nowrap tabular-nums">
+                  {filteredJobs.length} of {jobs.length}
+                </span>
+              )}
 
               {/* View toggle */}
               <div className="flex bg-gray-100 dark:bg-gray-800 rounded-[10px] p-[3px]">
@@ -420,13 +423,10 @@ export default function App() {
         )}
 
         {activeView === 'settings' && (
-          <div className="px-4 md:px-8 py-7">
-            <div className="text-center py-20 text-gray-400 dark:text-gray-600">
-              <div className="text-[48px] mb-4">⚙️</div>
-              <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Settings Coming Soon</p>
-              <p className="text-sm mt-2">Manage your profile, notifications, and preferences.</p>
-            </div>
-          </div>
+          <Settings
+            user={user}
+            onUserUpdate={(updatedUser) => setUser(updatedUser)}
+          />
         )}
 
         {/* Welcome modal — shown once after signup */}

@@ -59,11 +59,15 @@ export default function Sidebar({ user, onLogout, activeView, onViewChange, mobi
         mobileOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',
       ].join(' ')}
     >
-      {/* Logo */}
+      {/* Logo — click to collapse/expand (desktop only) */}
       <div className={`flex items-center ${collapsed ? 'justify-center' : ''} gap-2.5 px-5 pt-5 pb-1 mb-6`}>
-        <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-extrabold text-[15px] shrink-0">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="max-md:pointer-events-none w-8 h-8 rounded-[10px] bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-extrabold text-[15px] shrink-0 border-none cursor-pointer hover:opacity-80 transition-opacity duration-150"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
           A
-        </div>
+        </button>
         {!collapsed && (
           <span className="text-[17px] font-bold text-gray-900 dark:text-gray-50 tracking-tight">ApplyTrak</span>
         )}
@@ -123,20 +127,6 @@ export default function Sidebar({ user, onLogout, activeView, onViewChange, mobi
           {!collapsed && <span className="text-xs font-medium">{darkMode ? 'Light' : 'Dark'}</span>}
         </button>
 
-        {/* Collapse toggle — desktop only */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="max-md:hidden p-2 rounded-lg border-none bg-transparent text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer transition-all duration-150"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            {collapsed ? (
-              <polyline points="9 18 15 12 9 6" />
-            ) : (
-              <polyline points="15 18 9 12 15 6" />
-            )}
-          </svg>
-        </button>
       </div>
 
       {/* User footer */}

@@ -109,7 +109,7 @@ export default function JobCard({ job, onDelete, onEdit, viewMode = 'cards' }) {
 
             {/* Notes preview */}
             {job.notes && (
-                <div className="text-[13px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3.5 border-l-[3px] border-gray-200 dark:border-gray-700 leading-relaxed">
+                <div className="text-[13px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-3.5 border-l-[3px] border-gray-200 dark:border-gray-700 leading-relaxed line-clamp-3">
                     {job.notes}
                 </div>
             )}
