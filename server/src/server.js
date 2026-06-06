@@ -7,6 +7,7 @@ import express from 'express'
 import cors from 'cors'
 import { apiRouter } from './Routes/apiRoutes.js'
 import { authRouter } from './Routes/AuthRouter.js'
+import { userRouter } from './Routes/userRoutes.js'
 import { createTable } from './Database/createTable.js'
 
 const app = express()
@@ -35,6 +36,7 @@ app.use(express.json())
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/jobs', apiRouter)   // protected — requires JWT
 app.use('/api/auth', authRouter)  // public — login & register
+app.use('/api/user', userRouter)  // protected — user settings
 
 // ── 404 fallback ─────────────────────────────────────────────────────────────
 app.use((req, res) => {
