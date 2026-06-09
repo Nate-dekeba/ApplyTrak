@@ -190,7 +190,7 @@ export async function forgotPassword(req, res) {
             [hashedToken, expires, user.id]
         )
 
-        const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${rawToken}`
+        const resetUrl = `${process.env.CLIENT_URL}?token=${rawToken}`
 
         const resend = new Resend(process.env.RESEND_API_KEY)
         await resend.emails.send({
