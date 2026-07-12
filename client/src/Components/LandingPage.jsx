@@ -16,15 +16,9 @@ const FEATURES = [
   },
 ]
 
-const FREE_FEATURES = [
-  'Up to 25 active jobs',
-  'Kanban board & card views',
-  'Search & filter',
-  'Status tracking',
-]
-
-const PRO_FEATURES = [
-  'Unlimited jobs',
+const MONTHLY_FEATURES = [
+  'Unlimited job applications',
+  'Kanban board, table & card views',
   'URL import (auto-fill from job links)',
   'AI resume tailoring',
   'Cover letter generator',
@@ -34,7 +28,7 @@ const PRO_FEATURES = [
 ]
 
 const ANNUAL_FEATURES = [
-  'Everything in Pro',
+  'Everything in Monthly',
   'Priority support',
   'Early access to new features',
   'Exportable application history',
@@ -194,95 +188,79 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       </section>
 
       {/* Pricing */}
-      <section className="px-6 md:px-16 py-20">
-        <div className="max-w-5xl mx-auto">
+      <section className="px-6 md:px-16 py-20 bg-gray-50 dark:bg-gray-900/50">
+        <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Simple pricing</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Start free for 14 days</h2>
             <p className="text-gray-500 dark:text-gray-400">
-              Start free. Upgrade when you're ready for the full toolkit.
+              No charge until your trial ends. Cancel anytime.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
 
-            {/* Free tier */}
-            <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-8 bg-white dark:bg-gray-900">
-              <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Free</div>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$0</span>
+            {/* Monthly */}
+            <div className="border border-gray-200 dark:border-gray-700 rounded-2xl p-7 bg-white dark:bg-gray-900 flex flex-col">
+              <div>
+                <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">Monthly</div>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$15</span>
+                  <span className="text-gray-400 dark:text-gray-500 text-sm mb-1">/month</span>
+                </div>
+                <div className="text-sm text-gray-400 dark:text-gray-500 mb-7">after 14-day free trial · cancel anytime</div>
+                <ul className="flex flex-col gap-3 mb-8">
+                  {MONTHLY_FEATURES.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-indigo-500 font-bold shrink-0 mt-0.5">✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="text-sm text-gray-400 dark:text-gray-500 mb-8">forever</div>
-              <ul className="flex flex-col gap-3 mb-8">
-                {FREE_FEATURES.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="text-emerald-500 font-bold text-base shrink-0">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
               <button
                 onClick={onGetStarted}
-                className="w-full py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm font-semibold cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
-              >
-                Get Started Free
-              </button>
-            </div>
-
-            {/* Pro tier — most popular */}
-            <div className="relative border-2 border-indigo-500 rounded-2xl p-8 bg-gradient-to-b from-blue-50/60 to-indigo-50/60 dark:from-blue-950/20 dark:to-indigo-950/20">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-wider whitespace-nowrap">
-                  MOST POPULAR
-                </span>
-              </div>
-              <div className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-4">Pro</div>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$12</span>
-                <span className="text-gray-400 dark:text-gray-500 text-sm mb-1">/month</span>
-              </div>
-              <div className="text-sm text-gray-400 dark:text-gray-500 mb-8">billed monthly, cancel anytime</div>
-              <ul className="flex flex-col gap-3 mb-8">
-                {PRO_FEATURES.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="text-indigo-500 font-bold text-base shrink-0">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={onGetStarted}
-                className="w-full py-3 rounded-xl border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)] transition-all duration-200"
+                className="mt-auto w-full py-3 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200"
               >
                 Start Free Trial
               </button>
             </div>
 
-            {/* Annual tier — best value */}
-            <div className="relative border-2 border-emerald-500 rounded-2xl p-8 bg-gradient-to-b from-emerald-50/60 to-teal-50/60 dark:from-emerald-950/20 dark:to-teal-950/20">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-wider whitespace-nowrap">
+            {/* Annual — hero card */}
+            <div className="relative border-2 border-indigo-500 rounded-2xl p-7 bg-white dark:bg-gray-900 shadow-[0_8px_40px_rgba(99,102,241,0.15)] flex flex-col">
+              <div className="absolute -top-3 left-6">
+                <span className="bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-wider">
                   BEST VALUE
                 </span>
               </div>
-              <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-4">Annual</div>
-              <div className="flex items-end gap-1 mb-1">
-                <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$99</span>
+              <div>
+                <div className="text-xs font-semibold text-indigo-500 uppercase tracking-widest mb-4">Annual</div>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$99</span>
+                  <span className="text-gray-400 dark:text-gray-500 text-sm mb-1">/year</span>
+                </div>
+                <div className="text-sm text-gray-400 dark:text-gray-500 mb-7">
+                  <span className="text-indigo-500 font-semibold">$8.25/mo</span> · save $81 · after 14-day free trial
+                </div>
+                <ul className="flex flex-col gap-3 mb-8">
+                  {ANNUAL_FEATURES.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-indigo-500 font-bold shrink-0 mt-0.5">✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="text-sm text-gray-400 dark:text-gray-500 mb-8">one-time · full year · save $45</div>
-              <ul className="flex flex-col gap-3 mb-8">
-                {ANNUAL_FEATURES.map((f) => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="text-emerald-500 font-bold text-base shrink-0">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
               <button
                 onClick={onGetStarted}
-                className="w-full py-3 rounded-xl border-none bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(16,185,129,0.35)] transition-all duration-200"
+                className="mt-auto w-full py-3 rounded-xl border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-all duration-200"
               >
-                Get Annual Access
+                Start Free Trial
               </button>
             </div>
 
           </div>
+
+          <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
+            Credit card required · No charge for 14 days · Cancel before trial ends and you won't be billed
+          </p>
         </div>
       </section>
 

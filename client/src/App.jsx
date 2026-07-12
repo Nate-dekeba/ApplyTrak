@@ -28,8 +28,9 @@ import Settings from './Components/Settings.jsx'
 import ForgotPassword from './Components/ForgotPassword.jsx'
 import ResetPassword from './Components/ResetPassword.jsx'
 import VerifyEmail from './Components/VerifyEmail.jsx'
+import Paywall from './Components/Paywall.jsx'
 import { API_URL } from './config.js'
-import { getSavedUser, clearSession, authHeaders } from './auth.js'
+import { getSavedUser, saveSession, clearSession, authHeaders } from './auth.js'
 import { JOB_STATUSES } from './constants/jobStatuses.js'
 
 function getSavedDarkMode() {
@@ -73,6 +74,28 @@ export default function App() {
   useEffect(() => {
     if (user) fetchJobs()
   }, [user])
+
+  // After returning from Stripe checkout, refetch the profile so plan/trialEndsAt
+  // reflect the webhook update instead of the stale values from last login.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const checkoutStatus = params.get('checkout')
+    if (!checkoutStatus) return
+
+    params.delete('checkout')
+    const cleanUrl = window.location.pathname + (params.toString() ? `?${params}` : '')
+    window.history.replaceState({}, '', cleanUrl)
+
+    if (checkoutStatus === 'success') {
+      fetch(`${API_URL}/api/user/me`, { headers: authHeaders() })
+        .then((resp) => (resp.ok ? resp.json() : Promise.reject(new Error('Failed to refresh profile'))))
+        .then(({ user: freshUser, token }) => {
+          saveSession(token, freshUser)
+          setUser(freshUser)
+        })
+        .catch((err) => console.error('Failed to refresh user after checkout:', err))
+    }
+  }, [])
 
   const fetchJobs = async () => {
     setLoading(true)
@@ -210,6 +233,13 @@ export default function App() {
     ) : (
       <Signup onNeedVerification={(email) => setPendingVerificationEmail(email)} onSwitchToLogin={() => setShowLogin(true)} />
     )
+  }
+
+  /* ── Paywall — trial expired, no active subscription ── */
+  const trialExpired = user?.trialEndsAt && new Date(user.trialEndsAt) < new Date()
+  const isBlocked = trialExpired && user?.plan !== 'pro'
+  if (isBlocked) {
+    return <Paywall onLogout={handleLogout} />
   }
 
   /* ── Main app ── */

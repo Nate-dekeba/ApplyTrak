@@ -8,6 +8,27 @@ import jwt from 'jsonwebtoken'
 import { Resend } from 'resend'
 import pool from '../Database/db.js'
 
+// GET /api/user/me — fetch fresh profile (plan, trial status, etc.)
+export async function getMe(req, res) {
+    try {
+        const result = await pool.query(
+            'SELECT id, name, email, plan, trial_ends_at FROM users WHERE id = $1',
+            [req.user.id]
+        )
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'User not found' })
+        }
+
+        const row = result.rows[0]
+        const user = { id: row.id, name: row.name, email: row.email, plan: row.plan, trialEndsAt: row.trial_ends_at }
+        const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' })
+
+        res.status(200).json({ user, token })
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch profile', details: err.message })
+    }
+}
+
 // PUT /api/user/profile — update display name
 export async function updateName(req, res) {
     try {

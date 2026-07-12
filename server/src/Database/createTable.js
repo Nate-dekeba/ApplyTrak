@@ -31,6 +31,12 @@ export async function createTable() {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_change_token TEXT`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_change_expires TIMESTAMPTZ`)
 
+    // Stripe / billing columns
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan TEXT NOT NULL DEFAULT 'free'`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ`)
+
     // Jobs — each row is one job application, scoped to a user
     await pool.query(`
         CREATE TABLE IF NOT EXISTS jobs (
