@@ -8,6 +8,8 @@ import cors from 'cors'
 import { apiRouter } from './Routes/apiRoutes.js'
 import { authRouter } from './Routes/AuthRouter.js'
 import { userRouter } from './Routes/userRoutes.js'
+import { webhookRouter } from './Routes/webhookRoutes.js'
+import { billingRouter } from './Routes/billingRoutes.js'
 import { createTable } from './Database/createTable.js'
 
 const app = express()
@@ -30,13 +32,17 @@ app.use(cors({
     credentials: true,
 }))
 
+// ── Webhook (must be before express.json — needs raw body) ───────────────────
+app.use('/api/webhooks', webhookRouter)
+
 // ── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json())
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/jobs', apiRouter)   // protected — requires JWT
 app.use('/api/auth', authRouter)  // public — login & register
-app.use('/api/user', userRouter)  // protected — user settings
+app.use('/api/user', userRouter)      // protected — user settings
+app.use('/api/billing', billingRouter) // protected — Stripe billing
 
 // ── 404 fallback ─────────────────────────────────────────────────────────────
 app.use((req, res) => {

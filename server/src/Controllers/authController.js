@@ -39,7 +39,7 @@ export async function login(req, res) {
             return res.status(403).json({ error: 'Please verify your email before logging in.' })
         }
 
-        const userData = { id: user.id, email: user.email, name: user.name }
+        const userData = { id: user.id, email: user.email, name: user.name, plan: user.plan, trialEndsAt: user.trial_ends_at }
         const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.status(200).json({ message: 'Login successful', token, user: userData })
