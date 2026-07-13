@@ -190,7 +190,9 @@ export async function forgotPassword(req, res) {
             [hashedToken, expires, user.id]
         )
 
-        const resetUrl = `${process.env.CLIENT_URL}?token=${rawToken}`
+        // FRONTEND_URL may be a comma-separated list (for CORS) — use the first as the canonical app URL
+        const primaryFrontendUrl = process.env.FRONTEND_URL?.split(',')[0].trim()
+        const resetUrl = `${primaryFrontendUrl}?token=${rawToken}`
 
         const resend = new Resend(process.env.RESEND_API_KEY)
         await resend.emails.send({

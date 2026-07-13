@@ -38,6 +38,102 @@ function SectionCard({ title, description, children }) {
   )
 }
 
+// ── Billing Section ────────────────────────────────────────────────────────────
+const PLAN_BADGES = {
+  free: { label: 'Free Plan', className: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400' },
+  trialing: { label: 'Pro Trial', className: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' },
+  pro: { label: 'Pro', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' },
+}
+
+function BillingSection({ user }) {
+  const [loading, setLoading] = useState(null) // 'monthly' | 'annual' | 'portal'
+  const [error, setError] = useState('')
+
+  const badge = PLAN_BADGES[user.plan] || PLAN_BADGES.free
+  const hasSubscription = user.plan === 'trialing' || user.plan === 'pro'
+
+  const handleUpgrade = async (plan) => {
+    setLoading(plan)
+    setError('')
+    try {
+      const res = await fetch(`${API_URL}/api/billing/checkout`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ plan }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to start checkout')
+      window.location.href = data.url
+    } catch (err) {
+      setError(err.message)
+      setLoading(null)
+    }
+  }
+
+  const handleManageSubscription = async () => {
+    setLoading('portal')
+    setError('')
+    try {
+      const res = await fetch(`${API_URL}/api/billing/portal`, {
+        method: 'POST',
+        headers: authHeaders(),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to open billing portal')
+      window.location.href = data.url
+    } catch (err) {
+      setError(err.message)
+      setLoading(null)
+    }
+  }
+
+  return (
+    <SectionCard title="Billing" description="Manage your subscription and plan.">
+      <div className="flex flex-col gap-4">
+        {error && <ErrorBanner message={error} />}
+
+        <div className="flex items-center gap-3">
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>{badge.label}</span>
+          {user.plan === 'trialing' && user.trialEndsAt && (
+            <span className="text-[13px] text-gray-400 dark:text-gray-500">
+              Trial ends {new Date(user.trialEndsAt).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+
+        {hasSubscription ? (
+          <div className="flex justify-end">
+            <button
+              onClick={handleManageSubscription}
+              disabled={!!loading}
+              className="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-semibold cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === 'portal' ? 'Opening...' : 'Manage Subscription'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => handleUpgrade('monthly')}
+              disabled={!!loading}
+              className="flex-1 px-5 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === 'monthly' ? 'Redirecting...' : 'Upgrade Monthly — $15/mo'}
+            </button>
+            <button
+              onClick={() => handleUpgrade('annual')}
+              disabled={!!loading}
+              className="flex-1 px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === 'annual' ? 'Redirecting...' : 'Upgrade Annually — $99/yr'}
+            </button>
+          </div>
+        )}
+      </div>
+    </SectionCard>
+  )
+}
+
 // ── Profile Section ────────────────────────────────────────────────────────────
 function ProfileSection({ user, onUserUpdate }) {
   const [name, setName] = useState(user.name)
@@ -336,6 +432,7 @@ export default function Settings({ user, onUserUpdate }) {
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 m-0">Manage your profile and security preferences.</p>
       </div>
       <div className="flex flex-col gap-5">
+        <BillingSection user={user} />
         <ProfileSection user={user} onUserUpdate={onUserUpdate} />
         <EmailSection user={user} onUserUpdate={onUserUpdate} />
         <PasswordSection />
