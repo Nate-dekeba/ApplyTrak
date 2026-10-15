@@ -33,17 +33,14 @@ webhookRouter.post(
                     const userId = session.metadata?.userId
 
                     if (userId) {
-                        // Fetch subscription to get trial end date
-                        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-                        const trialEndsAt = subscription.trial_end
-                            ? new Date(subscription.trial_end * 1000)
-                            : null
-
+                        // Checkout never creates a Stripe-side trial (trials are handled
+                        // locally via /api/billing/start-trial) — a completed session
+                        // always means an immediately-active paid subscription.
                         await pool.query(
-                            `UPDATE users SET plan = 'trialing', stripe_customer_id = $1, stripe_subscription_id = $2, trial_ends_at = $3 WHERE id = $4`,
-                            [customerId, subscriptionId, trialEndsAt, userId]
+                            `UPDATE users SET plan = 'pro', stripe_customer_id = $1, stripe_subscription_id = $2 WHERE id = $3`,
+                            [customerId, subscriptionId, userId]
                         )
-                        console.log(`User ${userId} started 14-day trial`)
+                        console.log(`User ${userId} subscribed to Pro`)
                     }
                     break
                 }
@@ -53,11 +50,8 @@ webhookRouter.post(
                     const status = subscription.status
                     const customerId = subscription.customer
 
-                    // trialing → active means trial converted to paid
-                    // past_due / unpaid / canceled → downgrade to free
-                    let plan = 'free'
-                    if (status === 'active') plan = 'pro'
-                    else if (status === 'trialing') plan = 'trialing'
+                    // active means paid and current; anything else (past_due, unpaid, canceled) → downgrade to free
+                    const plan = status === 'active' ? 'pro' : 'free'
 
                     await pool.query(
                         `UPDATE users SET plan = $1 WHERE stripe_customer_id = $2`,

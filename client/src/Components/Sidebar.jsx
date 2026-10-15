@@ -42,8 +42,12 @@ const NAV_ITEMS = [
   },
 ]
 
-export default function Sidebar({ user, onLogout, activeView, onViewChange, mobileOpen, onMobileClose, darkMode, onToggleDark }) {
+export default function Sidebar({ user, onLogout, activeView, onViewChange, mobileOpen, onMobileClose, darkMode, onToggleDark, isPro, jobCount, jobLimit, onUpgradeClick }) {
   const [collapsed, setCollapsed] = useState(false)
+
+  const daysLeft = user?.trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(user.trialEndsAt) - new Date()) / (24 * 60 * 60 * 1000)))
+    : 0
 
   return (
     <aside
@@ -128,6 +132,48 @@ export default function Sidebar({ user, onLogout, activeView, onViewChange, mobi
         </button>
 
       </div>
+
+      {/* Plan status */}
+      {!collapsed && (
+        <div className="px-4 mb-3">
+          {user?.plan === 'pro' ? (
+            <span className="inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+              Pro
+            </span>
+          ) : user?.plan === 'trialing' && isPro ? (
+            <div className="flex flex-col gap-1.5">
+              <span className="inline-flex self-start px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                Pro Trial · {daysLeft}d left
+              </span>
+              <button
+                onClick={onUpgradeClick}
+                className="text-[11px] font-semibold text-indigo-500 hover:text-indigo-600 bg-transparent border-none cursor-pointer text-left p-0"
+              >
+                Upgrade now →
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500">
+                <span className="font-semibold">Free plan</span>
+                <span className="tabular-nums">{jobCount}/{jobLimit}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-500"
+                  style={{ width: `${Math.min(100, (jobCount / jobLimit) * 100)}%` }}
+                />
+              </div>
+              <button
+                onClick={onUpgradeClick}
+                className="text-[11px] font-semibold text-indigo-500 hover:text-indigo-600 bg-transparent border-none cursor-pointer text-left p-0"
+              >
+                Upgrade to Pro →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* User footer */}
       <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-4 flex items-center gap-2.5">

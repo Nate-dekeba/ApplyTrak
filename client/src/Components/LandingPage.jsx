@@ -10,28 +10,22 @@ const FEATURES = [
     desc: 'See your whole job search at a glance with Kanban board and status tracking built right in.',
   },
   {
-    icon: '🤖',
-    title: 'AI-Powered Tools',
-    desc: 'Tailor your resume, generate cover letters, and prep for interviews — all with AI assistance. (Pro)',
+    icon: '🆓',
+    title: 'Free to Start',
+    desc: 'Track up to 25 applications free, forever — no credit card required. Upgrade only when you need more.',
   },
 ]
 
 const MONTHLY_FEATURES = [
   'Unlimited job applications',
   'Kanban board, table & card views',
-  'URL import (auto-fill from job links)',
-  'AI resume tailoring',
-  'Cover letter generator',
-  'Interview prep assistant',
-  'Analytics dashboard',
-  'Weekly email digest',
+  'Priority support',
+  'Early access to new features',
 ]
 
 const ANNUAL_FEATURES = [
   'Everything in Monthly',
-  'Priority support',
-  'Early access to new features',
-  'Exportable application history',
+  'Save $81/year vs. monthly billing',
 ]
 
 const MOCK_STATS = [
@@ -73,7 +67,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
             Log in
           </button>
           <button
-            onClick={onGetStarted}
+            onClick={() => onGetStarted()}
             className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg border-none cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)] transition-all duration-200"
           >
             Get Started Free
@@ -102,7 +96,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
 
           <div className="flex flex-wrap items-center gap-3 mb-5">
             <button
-              onClick={onGetStarted}
+              onClick={() => onGetStarted()}
               className="px-6 py-3 text-[15px] font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl border-none cursor-pointer shadow-[0_4px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_6px_28px_rgba(99,102,241,0.45)] transition-all duration-200"
             >
               Get Started Free →
@@ -191,9 +185,9 @@ export default function LandingPage({ onGetStarted, onLogin }) {
       <section className="px-6 md:px-16 py-20 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Start free for 14 days</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Simple, upfront pricing</h2>
             <p className="text-gray-500 dark:text-gray-400">
-              No charge until your trial ends. Cancel anytime.
+              Free to start. Upgrade for unlimited applications whenever you're ready.
             </p>
           </div>
 
@@ -207,7 +201,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                   <span className="text-4xl font-extrabold text-gray-900 dark:text-white">$15</span>
                   <span className="text-gray-400 dark:text-gray-500 text-sm mb-1">/month</span>
                 </div>
-                <div className="text-sm text-gray-400 dark:text-gray-500 mb-7">after 14-day free trial · cancel anytime</div>
+                <div className="text-sm text-gray-400 dark:text-gray-500 mb-7">cancel anytime</div>
                 <ul className="flex flex-col gap-3 mb-8">
                   {MONTHLY_FEATURES.map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
@@ -217,10 +211,10 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 </ul>
               </div>
               <button
-                onClick={onGetStarted}
+                onClick={() => onGetStarted('monthly')}
                 className="mt-auto w-full py-3 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200"
               >
-                Start Free Trial
+                Subscribe Monthly
               </button>
             </div>
 
@@ -238,7 +232,7 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                   <span className="text-gray-400 dark:text-gray-500 text-sm mb-1">/year</span>
                 </div>
                 <div className="text-sm text-gray-400 dark:text-gray-500 mb-7">
-                  <span className="text-indigo-500 font-semibold">$8.25/mo</span> · save $81 · after 14-day free trial
+                  <span className="text-indigo-500 font-semibold">$8.25/mo</span> · save $81
                 </div>
                 <ul className="flex flex-col gap-3 mb-8">
                   {ANNUAL_FEATURES.map((f) => (
@@ -249,17 +243,17 @@ export default function LandingPage({ onGetStarted, onLogin }) {
                 </ul>
               </div>
               <button
-                onClick={onGetStarted}
+                onClick={() => onGetStarted('annual')}
                 className="mt-auto w-full py-3 rounded-xl border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-all duration-200"
               >
-                Start Free Trial
+                Subscribe Annually
               </button>
             </div>
 
           </div>
 
           <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
-            Credit card required · No charge for 14 days · Cancel before trial ends and you won't be billed
+            New here? <button onClick={() => onGetStarted()} className="text-indigo-500 font-semibold underline bg-transparent border-none cursor-pointer p-0">Sign up free</button> — no card required — and start a 14-day Pro trial anytime from Settings.
           </p>
         </div>
       </section>

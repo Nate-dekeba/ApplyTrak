@@ -2,6 +2,7 @@
  * @file billingController.js
  * @description Stripe billing — create checkout session, manage subscriptions
  */
+import jwt from 'jsonwebtoken'
 import Stripe from 'stripe'
 import pool from '../Database/db.js'
 
@@ -31,7 +32,6 @@ export async function createCheckoutSession(req, res) {
             customer_email: userEmail,
             line_items: [{ price: priceId, quantity: 1 }],
             subscription_data: {
-                trial_period_days: 14,
                 metadata: { userId: String(userId) },
             },
             metadata: { userId: String(userId) },
@@ -70,5 +70,43 @@ export async function createPortalSession(req, res) {
     } catch (err) {
         console.error('Stripe billing portal error:', err)
         res.status(500).json({ error: 'Failed to create billing portal session' })
+    }
+}
+
+// POST /api/billing/start-trial
+// Local, Stripe-free 14-day Pro trial — no card required. One-time per account:
+// trial_ends_at being set at all (even in the past) means the trial has been used.
+export async function startTrial(req, res) {
+    const userId = req.user.id
+
+    try {
+        const result = await pool.query(
+            'SELECT plan, trial_ends_at FROM users WHERE id = $1',
+            [userId]
+        )
+        const user = result.rows[0]
+
+        if (user.trial_ends_at) {
+            return res.status(400).json({ error: "You've already used your free trial." })
+        }
+        if (user.plan === 'trialing' || user.plan === 'pro') {
+            return res.status(400).json({ error: "You're already on this plan." })
+        }
+
+        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        const updated = await pool.query(
+            `UPDATE users SET plan = 'trialing', trial_ends_at = $1 WHERE id = $2
+             RETURNING id, name, email, plan, trial_ends_at`,
+            [trialEndsAt, userId]
+        )
+        const row = updated.rows[0]
+
+        const userData = { id: row.id, email: row.email, name: row.name, plan: row.plan, trialEndsAt: row.trial_ends_at }
+        const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '7d' })
+
+        res.status(200).json({ message: 'Your 14-day Pro trial has started.', token, user: userData })
+    } catch (err) {
+        console.error('Start trial error:', err)
+        res.status(500).json({ error: 'Failed to start trial' })
     }
 }

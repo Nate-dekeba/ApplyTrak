@@ -52,5 +52,11 @@ export async function createTable() {
         )
     `)
 
+    // Link back to the original posting — set manually or via URL import
+    await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS "sourceUrl" TEXT`)
+
+    // Speeds up per-user job lookups and the free-plan job-count check
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_userid ON jobs("userId")`)
+
     console.log('Database tables ready')
 }

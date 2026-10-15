@@ -17,6 +17,7 @@ export default function UpdateJob({ job, onJobUpdated }) {
     const [dateApplied, setDateApplied] = useState(job.dateApplied)
     const [jobType, setJobType]       = useState(job.jobType)
     const [notes, setNotes]           = useState(job.notes)
+    const [sourceUrl, setSourceUrl]   = useState(job.sourceUrl || '')
     const [error, setError]           = useState(null)
     const [loading, setLoading]       = useState(false)
 
@@ -29,7 +30,7 @@ export default function UpdateJob({ job, onJobUpdated }) {
             const response = await fetch(`${API_URL}/api/jobs/${job.id}`, {
                 method: 'PUT',
                 headers: authHeaders(),
-                body: JSON.stringify({ title, company, location, status, dateApplied, jobType, notes }),
+                body: JSON.stringify({ title, company, location, status, dateApplied, jobType, notes, sourceUrl }),
             })
             const data = await response.json()
             if (!response.ok) throw new Error(data.error || 'Failed to update job.')
@@ -106,6 +107,12 @@ export default function UpdateJob({ job, onJobUpdated }) {
                     onChange={(e) => setNotes(e.target.value)}
                     className={`${inputClass} min-h-[80px] resize-y`}
                 />
+            </div>
+
+            <div>
+                <label className={labelClass}>Source URL</label>
+                <input type="url" placeholder="https://company.com/careers/job-123" value={sourceUrl}
+                    onChange={(e) => setSourceUrl(e.target.value)} className={inputClass} />
             </div>
 
             <button
