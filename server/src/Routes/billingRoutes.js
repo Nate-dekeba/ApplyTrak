@@ -4,7 +4,7 @@
  * All routes require valid JWT.
  */
 import express from 'express'
-import { createCheckoutSession, createPortalSession } from '../Controllers/billingController.js'
+import { createCheckoutSession, createPortalSession, startTrial } from '../Controllers/billingController.js'
 import { authenticateToken } from '../Middleware/authMiddleware.js'
 
 export const billingRouter = express.Router()
@@ -12,3 +12,4 @@ billingRouter.use(authenticateToken)
 
 billingRouter.post('/checkout', createCheckoutSession) // POST /api/billing/checkout
 billingRouter.post('/portal', createPortalSession)     // POST /api/billing/portal
+billingRouter.post('/start-trial', startTrial)         // POST /api/billing/start-trial

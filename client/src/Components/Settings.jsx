@@ -45,12 +45,37 @@ const PLAN_BADGES = {
   pro: { label: 'Pro', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' },
 }
 
-function BillingSection({ user }) {
-  const [loading, setLoading] = useState(null) // 'monthly' | 'annual' | 'portal'
+function BillingSection({ user, onUserUpdate }) {
+  const [loading, setLoading] = useState(null) // 'trial' | 'monthly' | 'annual' | 'portal'
   const [error, setError] = useState('')
 
   const badge = PLAN_BADGES[user.plan] || PLAN_BADGES.free
-  const hasSubscription = user.plan === 'trialing' || user.plan === 'pro'
+  const isPaid = user.plan === 'pro'
+  const isTrialing = user.plan === 'trialing'
+  const trialUsed = !isTrialing && !!user.trialEndsAt // free, but already burned their trial
+
+  const daysLeft = user.trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(user.trialEndsAt) - new Date()) / (24 * 60 * 60 * 1000)))
+    : 0
+
+  const handleStartTrial = async () => {
+    setLoading('trial')
+    setError('')
+    try {
+      const res = await fetch(`${API_URL}/api/billing/start-trial`, {
+        method: 'POST',
+        headers: authHeaders(),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to start trial')
+      saveSession(data.token, data.user)
+      onUserUpdate(data.user)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(null)
+    }
+  }
 
   const handleUpgrade = async (plan) => {
     setLoading(plan)
@@ -94,14 +119,17 @@ function BillingSection({ user }) {
 
         <div className="flex items-center gap-3">
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>{badge.label}</span>
-          {user.plan === 'trialing' && user.trialEndsAt && (
+          {isTrialing && (
             <span className="text-[13px] text-gray-400 dark:text-gray-500">
-              Trial ends {new Date(user.trialEndsAt).toLocaleDateString()}
+              Trial ends {new Date(user.trialEndsAt).toLocaleDateString()} · {daysLeft} day{daysLeft === 1 ? '' : 's'} left
             </span>
+          )}
+          {trialUsed && (
+            <span className="text-[13px] text-gray-400 dark:text-gray-500">Your trial has ended.</span>
           )}
         </div>
 
-        {hasSubscription ? (
+        {isPaid ? (
           <div className="flex justify-end">
             <button
               onClick={handleManageSubscription}
@@ -112,21 +140,32 @@ function BillingSection({ user }) {
             </button>
           </div>
         ) : (
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={() => handleUpgrade('monthly')}
-              disabled={!!loading}
-              className="flex-1 px-5 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === 'monthly' ? 'Redirecting...' : 'Upgrade Monthly — $15/mo'}
-            </button>
-            <button
-              onClick={() => handleUpgrade('annual')}
-              disabled={!!loading}
-              className="flex-1 px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === 'annual' ? 'Redirecting...' : 'Upgrade Annually — $99/yr'}
-            </button>
+          <div className="flex flex-col gap-3">
+            {!isTrialing && !trialUsed && (
+              <button
+                onClick={handleStartTrial}
+                disabled={!!loading}
+                className="w-full px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading === 'trial' ? 'Starting trial...' : 'Start free 14-day trial — no card required'}
+              </button>
+            )}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => handleUpgrade('monthly')}
+                disabled={!!loading}
+                className="flex-1 px-5 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading === 'monthly' ? 'Redirecting...' : 'Subscribe Monthly — $15/mo'}
+              </button>
+              <button
+                onClick={() => handleUpgrade('annual')}
+                disabled={!!loading}
+                className="flex-1 px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading === 'annual' ? 'Redirecting...' : 'Subscribe Annually — $99/yr'}
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -432,7 +471,7 @@ export default function Settings({ user, onUserUpdate }) {
         <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 m-0">Manage your profile and security preferences.</p>
       </div>
       <div className="flex flex-col gap-5">
-        <BillingSection user={user} />
+        <BillingSection user={user} onUserUpdate={onUserUpdate} />
         <ProfileSection user={user} onUserUpdate={onUserUpdate} />
         <EmailSection user={user} onUserUpdate={onUserUpdate} />
         <PasswordSection />

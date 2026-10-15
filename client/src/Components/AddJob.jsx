@@ -9,7 +9,7 @@ import { API_URL } from '../config.js'
 import { authHeaders } from '../auth.js'
 import { JOB_STATUSES } from '../constants/jobStatuses.js'
 
-export default function AddJob({ onJobAdded }) {
+export default function AddJob({ onJobAdded, onUpgradeNeeded, isPro }) {
     const [title, setTitle]           = useState('')
     const [company, setCompany]       = useState('')
     const [location, setLocation]     = useState('')
@@ -17,22 +17,70 @@ export default function AddJob({ onJobAdded }) {
     const [dateApplied, setDateApplied] = useState('')
     const [jobType, setJobType]       = useState('Full Time')
     const [notes, setNotes]           = useState('')
+    const [sourceUrl, setSourceUrl]   = useState('')
     const [error, setError]           = useState(null)
+    const [atFreeLimit, setAtFreeLimit] = useState(false)
     const [loading, setLoading]       = useState(false)
+
+    const [importUrl, setImportUrl]   = useState('')
+    const [importLoading, setImportLoading] = useState(false)
+    const [importNote, setImportNote] = useState('')
+
+    const handleImport = async () => {
+        if (!importUrl.trim()) return
+        if (!isPro) { onUpgradeNeeded?.(); return }
+
+        setImportLoading(true)
+        setImportNote('')
+        try {
+            const response = await fetch(`${API_URL}/api/jobs/import-url`, {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ url: importUrl.trim() }),
+            })
+            const data = await response.json()
+            if (!response.ok) {
+                if (data.error === 'PRO_FEATURE_REQUIRED') { onUpgradeNeeded?.(); return }
+                throw new Error(data.error || 'Failed to import that link.')
+            }
+
+            setSourceUrl(data.url || importUrl.trim())
+
+            if (data.extracted) {
+                if (!title) setTitle(data.title || '')
+                if (!company) setCompany(data.company || '')
+                if (!location) setLocation(data.location || '')
+                if (!notes) setNotes(data.notes || '')
+            } else {
+                setImportNote("Couldn't auto-fill from that link — add the details manually. We saved the link.")
+            }
+        } catch (err) {
+            setImportNote(err.message)
+        } finally {
+            setImportLoading(false)
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
         setError(null)
+        setAtFreeLimit(false)
 
         try {
             const response = await fetch(`${API_URL}/api/jobs`, {
                 method: 'POST',
                 headers: authHeaders(),
-                body: JSON.stringify({ title, company, location, status, dateApplied, jobType, notes }),
+                body: JSON.stringify({ title, company, location, status, dateApplied, jobType, notes, sourceUrl }),
             })
             const data = await response.json()
-            if (!response.ok) throw new Error(data.error || 'Failed to add job.')
+            if (!response.ok) {
+                if (data.error === 'FREE_PLAN_LIMIT') {
+                    setAtFreeLimit(true)
+                    throw new Error(data.message || `You've reached the Free plan's ${data.limit}-application limit.`)
+                }
+                throw new Error(data.error || 'Failed to add job.')
+            }
 
             onJobAdded(data.job)
 
@@ -44,6 +92,9 @@ export default function AddJob({ onJobAdded }) {
             setDateApplied('')
             setJobType('Full Time')
             setNotes('')
+            setSourceUrl('')
+            setImportUrl('')
+            setImportNote('')
         } catch (err) {
             setError(err.message)
         } finally {
@@ -59,10 +110,51 @@ export default function AddJob({ onJobAdded }) {
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 m-0 mb-1">Add New Job</h2>
 
             {error && (
-                <div className="flex items-center gap-2 text-red-700 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
-                    {error}
+                <div className="flex items-center justify-between gap-3 text-red-700 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
+                    <span>{error}</span>
+                    {atFreeLimit && onUpgradeNeeded && (
+                        <button
+                            type="button"
+                            onClick={onUpgradeNeeded}
+                            className="shrink-0 text-red-700 dark:text-red-400 font-semibold underline bg-transparent border-none cursor-pointer p-0"
+                        >
+                            Upgrade
+                        </button>
+                    )}
                 </div>
             )}
+
+            {/* Import from a job link */}
+            <div className="rounded-lg border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 p-3.5">
+                <label className={`${labelClass} flex items-center gap-1.5`}>
+                    Paste a job link to auto-fill
+                    {!isPro && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
+                            Pro
+                        </span>
+                    )}
+                </label>
+                <div className="flex gap-2">
+                    <input
+                        type="url"
+                        placeholder="https://company.com/careers/job-123"
+                        value={importUrl}
+                        onChange={(e) => setImportUrl(e.target.value)}
+                        className={inputClass}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleImport}
+                        disabled={importLoading || !importUrl.trim()}
+                        className="shrink-0 px-4 py-2.5 rounded-lg border-none bg-indigo-600 text-white text-sm font-semibold cursor-pointer hover:bg-indigo-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {importLoading ? 'Importing...' : 'Import'}
+                    </button>
+                </div>
+                {importNote && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 mb-0">{importNote}</p>
+                )}
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
                 <div>

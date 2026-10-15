@@ -28,10 +28,11 @@ import Settings from './Components/Settings.jsx'
 import ForgotPassword from './Components/ForgotPassword.jsx'
 import ResetPassword from './Components/ResetPassword.jsx'
 import VerifyEmail from './Components/VerifyEmail.jsx'
-import Paywall from './Components/Paywall.jsx'
+import UpgradeModal from './Components/UpgradeModal.jsx'
 import { API_URL } from './config.js'
 import { getSavedUser, saveSession, clearSession, authHeaders } from './auth.js'
 import { JOB_STATUSES } from './constants/jobStatuses.js'
+import { FREE_JOB_LIMIT, isProActive } from './constants/plans.js'
 
 function getSavedDarkMode() {
   try {
@@ -59,6 +60,9 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState(null)
+  const [pendingPlan, setPendingPlan] = useState(null) // 'monthly' | 'annual' — set when a landing pricing card is clicked
+  const [checkoutRedirecting, setCheckoutRedirecting] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const resetToken = new URLSearchParams(window.location.search).get('token')
 
@@ -96,6 +100,29 @@ export default function App() {
         .catch((err) => console.error('Failed to refresh user after checkout:', err))
     }
   }, [])
+
+  // If the user picked a plan on the landing page before signing up/logging in,
+  // fire checkout automatically once they have a session instead of dropping them on the free dashboard.
+  useEffect(() => {
+    if (!user || !pendingPlan) return
+    if (user.plan !== 'free') { setPendingPlan(null); return }
+
+    const plan = pendingPlan
+    setPendingPlan(null)
+    setCheckoutRedirecting(true)
+
+    fetch(`${API_URL}/api/billing/checkout`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ plan }),
+    })
+      .then((resp) => (resp.ok ? resp.json() : Promise.reject(new Error('Failed to start checkout'))))
+      .then(({ url }) => { window.location.href = url })
+      .catch((err) => {
+        console.error('Failed to start checkout after signup:', err)
+        setCheckoutRedirecting(false)
+      })
+  }, [user, pendingPlan])
 
   const fetchJobs = async () => {
     setLoading(true)
@@ -219,7 +246,11 @@ export default function App() {
     if (showLanding) {
       return (
         <LandingPage
-          onGetStarted={() => { setShowLanding(false); setShowLogin(false) }}
+          onGetStarted={(plan) => {
+            if (plan) setPendingPlan(plan)
+            setShowLanding(false)
+            setShowLogin(false)
+          }}
           onLogin={() => { setShowLanding(false); setShowLogin(true) }}
         />
       )
@@ -235,12 +266,20 @@ export default function App() {
     )
   }
 
-  /* ── Paywall — trial expired, no active subscription ── */
-  const trialExpired = user?.trialEndsAt && new Date(user.trialEndsAt) < new Date()
-  const isBlocked = trialExpired && user?.plan !== 'pro'
-  if (isBlocked) {
-    return <Paywall onLogout={handleLogout} />
+  /* ── Redirecting to checkout after picking a plan on the landing page ── */
+  if (checkoutRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Redirecting you to checkout...</p>
+        </div>
+      </div>
+    )
   }
+
+  const isPro = isProActive(user)
+  const atJobLimit = !isPro && jobs.length >= FREE_JOB_LIMIT
 
   /* ── Main app ── */
   return (
@@ -262,6 +301,10 @@ export default function App() {
         onMobileClose={() => setMobileNavOpen(false)}
         darkMode={darkMode}
         onToggleDark={() => setDarkMode((d) => !d)}
+        isPro={isPro}
+        jobCount={jobs.length}
+        jobLimit={FREE_JOB_LIMIT}
+        onUpgradeClick={() => setShowUpgradeModal(true)}
       />
 
       {/* Main content */}
@@ -290,7 +333,7 @@ export default function App() {
 
           {activeView === 'applications' && (
             <button
-              onClick={() => setShowJobForm(!showJobForm)}
+              onClick={() => (atJobLimit ? setShowUpgradeModal(true) : setShowJobForm(!showJobForm))}
               className="flex items-center gap-1.5 px-4 md:px-5 py-2.5 rounded-[10px] border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[13px] font-semibold cursor-pointer shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-all duration-200"
             >
               <span className="text-[17px] leading-none font-normal">+</span>
@@ -475,8 +518,20 @@ export default function App() {
           </JobFormPopUp>
         ) : (
           <JobFormPopUp trigger={showJobForm} onClose={() => setShowJobForm(false)}>
-            <AddJob onJobAdded={handleJobAdded} />
+            <AddJob
+              onJobAdded={handleJobAdded}
+              onUpgradeNeeded={() => { setShowJobForm(false); setShowUpgradeModal(true) }}
+              isPro={isPro}
+            />
           </JobFormPopUp>
+        )}
+
+        {showUpgradeModal && (
+          <UpgradeModal
+            user={user}
+            onClose={() => setShowUpgradeModal(false)}
+            onUserUpdate={(updatedUser) => setUser(updatedUser)}
+          />
         )}
       </main>
     </div>

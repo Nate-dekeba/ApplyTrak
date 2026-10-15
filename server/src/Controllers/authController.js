@@ -10,6 +10,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { Resend } from 'resend'
 import pool from '../Database/db.js'
+import { getCurrentPlanState } from '../utils/plan.js'
 
 // POST /api/auth/login
 export async function login(req, res) {
@@ -39,7 +40,8 @@ export async function login(req, res) {
             return res.status(403).json({ error: 'Please verify your email before logging in.' })
         }
 
-        const userData = { id: user.id, email: user.email, name: user.name, plan: user.plan, trialEndsAt: user.trial_ends_at }
+        const planState = await getCurrentPlanState(user.id)
+        const userData = { id: user.id, email: user.email, name: user.name, plan: planState.plan, trialEndsAt: planState.trialEndsAt }
         const token = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.status(200).json({ message: 'Login successful', token, user: userData })

@@ -37,7 +37,15 @@ export default function JobCard({ job, onDelete, onEdit, viewMode = 'cards' }) {
                         <CompanyAvatar company={job.company} size="sm" />
                         <div>
                             <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{job.title}</div>
-                            <div className="text-xs text-gray-400 dark:text-gray-500">{job.company}</div>
+                            <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1.5">
+                                {job.company}
+                                {job.sourceUrl && (
+                                    <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer"
+                                        className="text-indigo-500 hover:text-indigo-600" onClick={(e) => e.stopPropagation()}>
+                                        View posting ↗
+                                    </a>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </td>
@@ -79,7 +87,15 @@ export default function JobCard({ job, onDelete, onEdit, viewMode = 'cards' }) {
                     <div className="flex justify-between items-start gap-2">
                         <div className="min-w-0">
                             <div className="text-[15px] font-semibold text-gray-900 dark:text-gray-100 leading-snug truncate">{job.title}</div>
-                            <div className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">{job.company}</div>
+                            <div className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-2">
+                                <span>{job.company}</span>
+                                {job.sourceUrl && (
+                                    <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer"
+                                        className="text-xs text-indigo-500 hover:text-indigo-600 shrink-0">
+                                        View posting ↗
+                                    </a>
+                                )}
+                            </div>
                         </div>
                         <span className={`shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${style.badge}`}>
                             {job.status}

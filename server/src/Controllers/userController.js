@@ -7,12 +7,13 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { Resend } from 'resend'
 import pool from '../Database/db.js'
+import { getCurrentPlanState } from '../utils/plan.js'
 
 // GET /api/user/me — fetch fresh profile (plan, trial status, etc.)
 export async function getMe(req, res) {
     try {
         const result = await pool.query(
-            'SELECT id, name, email, plan, trial_ends_at FROM users WHERE id = $1',
+            'SELECT id, name, email FROM users WHERE id = $1',
             [req.user.id]
         )
         if (result.rowCount === 0) {
@@ -20,7 +21,8 @@ export async function getMe(req, res) {
         }
 
         const row = result.rows[0]
-        const user = { id: row.id, name: row.name, email: row.email, plan: row.plan, trialEndsAt: row.trial_ends_at }
+        const planState = await getCurrentPlanState(req.user.id)
+        const user = { id: row.id, name: row.name, email: row.email, plan: planState.plan, trialEndsAt: planState.trialEndsAt }
         const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.status(200).json({ user, token })
@@ -36,16 +38,13 @@ export async function updateName(req, res) {
         if (!name?.trim()) return res.status(400).json({ error: 'Name is required' })
 
         const result = await pool.query(
-            'UPDATE users SET name = $1 WHERE id = $2 RETURNING id, name, email',
+            'UPDATE users SET name = $1 WHERE id = $2 RETURNING id, name, email, plan, trial_ends_at',
             [name.trim(), req.user.id]
         )
 
-        const user = result.rows[0]
-        const token = jwt.sign(
-            { id: user.id, email: user.email, name: user.name },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
-        )
+        const row = result.rows[0]
+        const user = { id: row.id, email: row.email, name: row.name, plan: row.plan, trialEndsAt: row.trial_ends_at }
+        const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.status(200).json({ message: 'Name updated successfully.', token, user })
     } catch (err) {
@@ -127,7 +126,7 @@ export async function confirmEmailChange(req, res) {
              WHERE id = $1
                AND email_change_token = $2
                AND email_change_expires > NOW()
-             RETURNING id, name, email`,
+             RETURNING id, name, email, plan, trial_ends_at`,
             [req.user.id, hashedCode]
         )
 
@@ -135,12 +134,9 @@ export async function confirmEmailChange(req, res) {
             return res.status(400).json({ error: 'Invalid or expired code.' })
         }
 
-        const user = result.rows[0]
-        const token = jwt.sign(
-            { id: user.id, email: user.email, name: user.name },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
-        )
+        const row = result.rows[0]
+        const user = { id: row.id, email: row.email, name: row.name, plan: row.plan, trialEndsAt: row.trial_ends_at }
+        const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' })
 
         res.status(200).json({ message: 'Email updated successfully.', token, user })
     } catch (err) {
