@@ -4,7 +4,10 @@
  * User enters the 6-digit code sent to their email.
  */
 import { useState, useRef } from 'react'
+import { Mail } from 'lucide-react'
 import { API_URL } from '../config.js'
+import AuthShell from './ui/AuthShell.jsx'
+import Button from './ui/Button.jsx'
 
 export default function VerifyEmail({ email, onVerified, onBackToSignup }) {
   const [digits, setDigits] = useState(Array(6).fill(''))
@@ -38,6 +41,7 @@ export default function VerifyEmail({ email, onVerified, onBackToSignup }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (loading) return
     const code = digits.join('')
     if (code.length < 6) return setError('Enter all 6 digits.')
 
@@ -78,37 +82,28 @@ export default function VerifyEmail({ email, onVerified, onBackToSignup }) {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div className="w-full max-w-[440px] mx-4 animate-slideIn">
-
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-extrabold text-lg">
-            A
+    <AuthShell maxWidth="440px">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400 mx-auto mb-3">
+            <Mail size={22} />
           </div>
-          <span className="text-2xl font-bold text-gray-900 dark:text-gray-50 tracking-tight">ApplyTrak</span>
+          <h2 className="text-h2 font-bold text-slate-900 dark:text-slate-50 m-0">Check your email</h2>
+          <p className="text-body-sm text-slate-400 dark:text-slate-500 mt-2 m-0">
+            We sent a 6-digit code to<br />
+            <strong className="text-slate-600 dark:text-slate-300">{email}</strong>
+          </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-5 bg-white dark:bg-gray-900 px-8 py-8 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-gray-100 dark:border-gray-800"
-        >
-          <div className="text-center">
-            <div className="text-4xl mb-3">📬</div>
-            <h2 className="text-[22px] font-bold text-gray-900 dark:text-gray-50 m-0">Check your email</h2>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2 m-0">
-              We sent a 6-digit code to<br />
-              <strong className="text-gray-600 dark:text-gray-300">{email}</strong>
-            </p>
+        {error && (
+          <div role="alert" aria-live="polite" className="flex items-center gap-2 text-error-700 dark:text-error-400 px-3.5 py-2.5 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-control text-sm">
+            {error}
           </div>
+        )}
 
-          {error && (
-            <div className="flex items-center gap-2 text-red-700 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* OTP boxes */}
+        {/* OTP boxes */}
+        <fieldset className="border-none p-0 m-0">
+          <legend className="sr-only">6-digit verification code</legend>
           <div className="flex justify-center gap-2.5" onPaste={handlePaste}>
             {digits.map((digit, i) => (
               <input
@@ -117,48 +112,45 @@ export default function VerifyEmail({ email, onVerified, onBackToSignup }) {
                 type="text"
                 inputMode="numeric"
                 maxLength={1}
+                aria-label={`Digit ${i + 1} of 6`}
                 value={digit}
                 onChange={e => handleChange(i, e.target.value)}
                 onKeyDown={e => handleKeyDown(i, e)}
-                className="w-11 h-13 text-center text-xl font-bold rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200 py-3"
+                className="w-11 h-13 text-center text-xl font-bold rounded-control border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 transition-all duration-150 py-3"
                 style={{ width: '44px', height: '52px' }}
               />
             ))}
           </div>
+        </fieldset>
 
-          <button
-            type="submit"
-            disabled={loading || digits.join('').length < 6}
-            className="w-full py-3 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[15px] font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Verifying...' : 'Verify Email'}
-          </button>
+        <Button type="submit" variant="primary" loading={loading} disabled={digits.join('').length < 6} className="w-full">
+          {loading ? 'Verifying...' : 'Verify Email'}
+        </Button>
 
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Didn't receive it?{' '}
-            {resendStatus === 'sent' ? (
-              <span className="text-emerald-500 font-medium">Code sent!</span>
-            ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resendStatus === 'sending'}
-                className="bg-transparent border-none text-blue-500 font-medium cursor-pointer p-0 hover:underline disabled:opacity-60"
-              >
-                {resendStatus === 'sending' ? 'Sending...' : 'Resend code'}
-              </button>
-            )}
-          </div>
+        <div className="text-center text-sm text-slate-500 dark:text-slate-400">
+          Didn't receive it?{' '}
+          {resendStatus === 'sent' ? (
+            <span className="text-success-600 dark:text-success-500 font-medium">Code sent!</span>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendStatus === 'sending'}
+              className="bg-transparent border-none text-primary-600 font-medium cursor-pointer p-0 hover:underline disabled:opacity-60 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+            >
+              {resendStatus === 'sending' ? 'Sending...' : 'Resend code'}
+            </button>
+          )}
+        </div>
 
-          <button
-            type="button"
-            onClick={onBackToSignup}
-            className="bg-transparent border-none text-gray-400 text-sm cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 transition-colors mx-auto"
-          >
-            ← Back
-          </button>
-        </form>
-      </div>
-    </div>
+        <button
+          type="button"
+          onClick={onBackToSignup}
+          className="bg-transparent border-none text-slate-400 text-sm cursor-pointer hover:text-slate-600 dark:hover:text-slate-300 transition-colors mx-auto rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+        >
+          ← Back
+        </button>
+      </form>
+    </AuthShell>
   )
 }

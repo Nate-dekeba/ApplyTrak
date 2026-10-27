@@ -3,6 +3,102 @@
 /* Enable class-based dark mode: applies dark: variants when .dark is on any ancestor */
 @custom-variant dark (&:is(.dark, .dark *));
 
+/* ─── Design tokens ───────────────────────────────────────────────────────────
+ * New semantic tokens only — intentionally does NOT redefine Tailwind's
+ * built-in radius/shadow scale names (lg/xl/2xl/sm/md/etc), since screens not
+ * yet migrated to the new design system still rely on those defaults. Radius
+ * and shadow tokens below use distinct names (card/control/modal/chip,
+ * soft-xs/soft-sm/soft-md) so they're additive, not retroactive, until each
+ * screen is deliberately migrated.
+ * ──────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Brand primary — #2563EB, aliased so components reference "primary", not "blue" */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+  --color-primary-950: #172554;
+
+  /* Semantic system-feedback colors (banners, validation, toasts) —
+   * distinct from job-status colors in constants/statusStyles.js.
+   * Full 50-900 scale defined deliberately: a partial scale (missing
+   * 400/800/900) silently drops any class referencing those shades —
+   * Tailwind generates no CSS for an undefined theme value, so e.g.
+   * `dark:bg-error-900/20` or `border-error-400` becomes a no-op rather
+   * than an error, which is how this went unnoticed until Phase D2. */
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065f46;
+  --color-success-900: #064e3b;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+
+  --color-info-50: #f0f9ff;
+  --color-info-100: #e0f2fe;
+  --color-info-400: #38bdf8;
+  --color-info-500: #0ea5e9;
+  --color-info-600: #0284c7;
+  --color-info-700: #0369a1;
+  --color-info-800: #075985;
+  --color-info-900: #0c4a6e;
+
+  /* Typography scale */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --text-display: 3rem;
+  --text-display--line-height: 1.1;
+  --text-h1: 1.75rem;
+  --text-h1--line-height: 1.2;
+  --text-h2: 1.25rem;
+  --text-h2--line-height: 1.3;
+  --text-h3: 1rem;
+  --text-h3--line-height: 1.4;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.5;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.3;
+
+  /* Radius — semantic names, additive to (not replacing) Tailwind defaults */
+  --radius-chip: 8px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-modal: 18px;
+
+  /* Shadows — soft, neutral-slate, no colored glow; additive names */
+  --shadow-soft-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-soft-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-soft-md: 0 8px 24px rgba(15, 23, 42, 0.10);
+}
+
 /* ─── Custom base styles ──────────────────────────────────────────────────── */
 @layer base {
   body {
@@ -23,6 +119,16 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+/* ─── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ─── Animations ──────────────────────────────────────────────────────────── */

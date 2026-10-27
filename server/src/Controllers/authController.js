@@ -66,18 +66,21 @@ async function sendVerificationCode(email, name) {
         to: email,
         subject: 'Your ApplyTrak verification code',
         html: `
-            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
-                <h2 style="color:#1e293b;margin-bottom:8px">Verify your email</h2>
-                <p style="color:#64748b;margin-bottom:24px">
+            <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;background:#ffffff">
+                <div style="text-align:center;margin-bottom:24px">
+                    <span style="display:inline-block;width:40px;height:40px;line-height:40px;background:#2563eb;color:#ffffff;font-weight:700;font-size:18px;border-radius:10px;text-align:center">A</span>
+                </div>
+                <h2 style="color:#0f172a;font-size:20px;margin:0 0 8px;text-align:center">Verify your email</h2>
+                <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 24px;text-align:center">
                     Hi ${name}, enter this code in the app to activate your account.
                     It expires in <strong>15 minutes</strong>.
                 </p>
                 <div style="text-align:center;margin:32px 0">
-                    <span style="display:inline-block;letter-spacing:12px;font-size:36px;font-weight:700;color:#1e293b;background:#f1f5f9;padding:16px 24px;border-radius:12px;font-family:monospace">
+                    <span style="display:inline-block;letter-spacing:8px;font-size:32px;font-weight:700;color:#0f172a;background:#f8fafc;border:1px solid #e2e8f0;padding:16px 20px;border-radius:10px;font-family:'Courier New',Courier,monospace">
                         ${code}
                     </span>
                 </div>
-                <p style="color:#94a3b8;font-size:12px;margin-top:24px">
+                <p style="color:#94a3b8;font-size:12px;line-height:1.5;margin:24px 0 0;text-align:center">
                     If you didn't create an account, you can safely ignore this email.
                 </p>
             </div>
@@ -202,16 +205,25 @@ export async function forgotPassword(req, res) {
             to: email.trim(),
             subject: 'Reset your ApplyTrak password',
             html: `
-                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
-                    <h2 style="color:#1e293b;margin-bottom:8px">Reset your password</h2>
-                    <p style="color:#64748b;margin-bottom:24px">
+                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;background:#ffffff">
+                    <div style="text-align:center;margin-bottom:24px">
+                        <span style="display:inline-block;width:40px;height:40px;line-height:40px;background:#2563eb;color:#ffffff;font-weight:700;font-size:18px;border-radius:10px;text-align:center">A</span>
+                    </div>
+                    <h2 style="color:#0f172a;font-size:20px;margin:0 0 8px;text-align:center">Reset your password</h2>
+                    <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 24px;text-align:center">
                         Click the button below to set a new password. This link expires in <strong>1 hour</strong>.
                     </p>
-                    <a href="${resetUrl}"
-                       style="display:inline-block;padding:12px 28px;background:linear-gradient(to right,#3b82f6,#6366f1);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
-                        Reset Password
-                    </a>
-                    <p style="color:#94a3b8;font-size:12px;margin-top:24px">
+                    <div style="text-align:center;margin:32px 0">
+                        <a href="${resetUrl}"
+                           style="display:inline-block;padding:12px 32px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px">
+                            Reset Password
+                        </a>
+                    </div>
+                    <p style="color:#94a3b8;font-size:12px;line-height:1.5;margin:0 0 24px;text-align:center;word-break:break-all">
+                        Or copy and paste this link into your browser:<br />
+                        <a href="${resetUrl}" style="color:#2563eb">${resetUrl}</a>
+                    </p>
+                    <p style="color:#94a3b8;font-size:12px;line-height:1.5;margin:0;text-align:center">
                         If you didn't request this, you can safely ignore this email.
                     </p>
                 </div>

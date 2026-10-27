@@ -4,13 +4,8 @@
  * in each status, with a color-coded legend below.
  * Segments with 0% are omitted to keep the bar clean.
  */
-
-const STAGES = [
-    { key: 'Applied',      color: 'bg-blue-500',    dotColor: 'bg-blue-500' },
-    { key: 'Interviewing', color: 'bg-amber-500',   dotColor: 'bg-amber-500' },
-    { key: 'Offered',      color: 'bg-emerald-500', dotColor: 'bg-emerald-500' },
-    { key: 'Rejected',     color: 'bg-red-500',     dotColor: 'bg-red-500' },
-]
+import { JOB_STATUSES } from '../constants/jobStatuses.js'
+import { STATUS_STYLES } from '../constants/statusStyles.js'
 
 export default function PipelineBar({ jobs }) {
     const total = jobs.length
@@ -24,15 +19,15 @@ export default function PipelineBar({ jobs }) {
     return (
         <div className="mb-7">
             {/* Segmented bar */}
-            <div className="flex rounded-lg overflow-hidden h-2 bg-gray-200 dark:bg-gray-700">
-                {STAGES.map((stage) => {
-                    const count = stats[stage.key] || 0
+            <div className="flex rounded-full overflow-hidden h-2 bg-slate-200 dark:bg-slate-700">
+                {JOB_STATUSES.map((status) => {
+                    const count = stats[status] || 0
                     const pct   = total > 0 ? (count / total) * 100 : 0
                     if (pct === 0) return null
                     return (
                         <div
-                            key={stage.key}
-                            className={`${stage.color} transition-all duration-400`}
+                            key={status}
+                            className={`${STATUS_STYLES[status].bg} transition-all duration-400`}
                             style={{ width: `${pct}%` }}
                         />
                     )
@@ -41,10 +36,10 @@ export default function PipelineBar({ jobs }) {
 
             {/* Legend */}
             <div className="flex flex-wrap gap-4 mt-2">
-                {STAGES.map((stage) => (
-                    <div key={stage.key} className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400">
-                        <div className={`w-2 h-2 rounded-full ${stage.dotColor}`} />
-                        {stage.key} ({stats[stage.key] || 0})
+                {JOB_STATUSES.map((status) => (
+                    <div key={status} className="flex items-center gap-1.5 text-caption text-slate-500 dark:text-slate-400">
+                        <div className={`w-2 h-2 rounded-full ${STATUS_STYLES[status].dot}`} />
+                        {status} ({stats[status] || 0})
                     </div>
                 ))}
             </div>

@@ -4,7 +4,11 @@
  * Validates that passwords match and are at least 8 characters before submitting.
  */
 import { useState } from "react"
+import { Check, X } from 'lucide-react'
 import { API_URL } from '../config.js'
+import AuthShell from './ui/AuthShell.jsx'
+import Input from './ui/Input.jsx'
+import Button from './ui/Button.jsx'
 
 export default function Signup({ onNeedVerification, onSwitchToLogin }) {
   const [name, setName] = useState('')
@@ -18,6 +22,7 @@ export default function Signup({ onNeedVerification, onSwitchToLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (loading) return
     if (password !== confirmPassword) {
       return setError('Passwords do not match.')
     }
@@ -48,116 +53,78 @@ export default function Signup({ onNeedVerification, onSwitchToLogin }) {
     }
   }
 
-  const inputClass = "w-full py-2.5 px-3.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200"
-  const labelClass = "block text-[13px] font-medium text-gray-600 dark:text-gray-400 mb-1.5"
-
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div className="w-full max-w-[440px] mx-4 animate-slideIn">
-
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-extrabold text-lg">
-            A
+    <AuthShell title="Create your account" subtitle="Track every application. Land the right job." maxWidth="440px">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {error && (
+          <div role="alert" aria-live="polite" className="flex items-center gap-2 text-error-700 dark:text-error-400 px-3.5 py-2.5 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-control text-sm">
+            {error}
           </div>
-          <span className="text-2xl font-bold text-gray-900 dark:text-gray-50 tracking-tight">ApplyTrak</span>
-        </div>
+        )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-4 bg-white dark:bg-gray-900 px-8 py-8 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-gray-100 dark:border-gray-800"
-        >
-          <div className="text-center mb-1">
-            <h2 className="text-[22px] font-bold text-gray-900 dark:text-gray-50 m-0">Create your account</h2>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 m-0">Track every application. Land the right job.</p>
-          </div>
+        <Input
+          label="Full Name"
+          type="text"
+          placeholder="Your full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          autoComplete="name"
+        />
 
-          {error && (
-            <div className="flex items-center gap-2 text-red-700 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
-              {error}
-            </div>
+        <Input
+          label="Email"
+          type="email"
+          placeholder="you@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+        />
+
+        <Input
+          label="Password"
+          type="password"
+          placeholder="Create a password"
+          helperText="At least 8 characters"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+        />
+
+        <Input
+          label="Confirm Password"
+          type="password"
+          placeholder="Re-enter your password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+          success={confirmPassword.length > 0 && passwordsMatch}
+          error={confirmPassword.length > 0 && !passwordsMatch ? 'Passwords do not match' : undefined}
+          endAdornment={confirmPassword.length > 0 && (
+            passwordsMatch
+              ? <Check size={16} className="text-success-500" />
+              : <X size={16} className="text-error-500" />
           )}
+        />
 
-          {/* Full Name */}
-          <div>
-            <label className={labelClass}>Full Name</label>
-            <input
-              type="text"
-              placeholder="Your full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </div>
+        <Button type="submit" variant="primary" loading={loading} className="w-full mt-1">
+          {loading ? 'Creating account...' : 'Create Account'}
+        </Button>
 
-          {/* Email */}
-          <div>
-            <label className={labelClass}>Email</label>
-            <input
-              type="email"
-              placeholder="you@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className={labelClass}>Password</label>
-            <input
-              type="password"
-              placeholder="At least 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <label className={labelClass}>Confirm Password</label>
-            <div className="relative">
-              <input
-                type="password"
-                placeholder="Re-enter your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className={`${inputClass} ${confirmPassword.length > 0 ? (passwordsMatch ? 'border-emerald-400 focus:border-emerald-500' : 'border-red-400 focus:border-red-500') : ''}`}
-              />
-              {/* Match indicator */}
-              {confirmPassword.length > 0 && (
-                <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold ${passwordsMatch ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {passwordsMatch ? '✓' : '✗'}
-                </span>
-              )}
-            </div>
-          </div>
-
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-1 m-0">
+          Already have an account?{' '}
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[15px] font-semibold cursor-pointer mt-1 hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            type="button"
+            onClick={onSwitchToLogin}
+            className="bg-transparent border-none text-primary-600 font-medium cursor-pointer p-0 hover:text-primary-700 hover:underline transition-colors duration-150 text-sm rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            Log in
           </button>
-
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-1 m-0">
-            Already have an account?{' '}
-            <button
-              type="button"
-              onClick={onSwitchToLogin}
-              className="bg-transparent border-none text-blue-500 font-medium cursor-pointer p-0 hover:text-blue-700 hover:underline transition-colors duration-150 text-sm"
-            >
-              Log in
-            </button>
-          </p>
-        </form>
-      </div>
-    </div>
+        </p>
+      </form>
+    </AuthShell>
   )
 }
