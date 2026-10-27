@@ -8,6 +8,10 @@ import { useState } from 'react'
 import { API_URL } from '../config.js'
 import { authHeaders } from '../auth.js'
 import { JOB_STATUSES } from '../constants/jobStatuses.js'
+import Input from './ui/Input.jsx'
+import Select from './ui/Select.jsx'
+import Textarea from './ui/Textarea.jsx'
+import Button from './ui/Button.jsx'
 
 export default function UpdateJob({ job, onJobUpdated }) {
     const [title, setTitle]           = useState(job.title)
@@ -42,86 +46,55 @@ export default function UpdateJob({ job, onJobUpdated }) {
         }
     }
 
-    const inputClass = "w-full py-2.5 px-3.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200"
-    const labelClass = "block text-[13px] font-medium text-gray-600 dark:text-gray-400 mb-1.5"
-
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 m-0 mb-1">Update Job</h2>
+            <h2 className="text-h2 font-bold text-slate-900 dark:text-slate-100 m-0 mb-1">Update Job</h2>
 
             {error && (
-                <div className="flex items-center gap-2 text-red-700 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
+                <div className="flex items-center gap-2 text-error-700 px-3.5 py-2.5 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-control text-sm">
                     {error}
                 </div>
             )}
 
             <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className={labelClass}>Job Title *</label>
-                    <input type="text" placeholder="Job Title" value={title}
-                        onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
-                </div>
-                <div>
-                    <label className={labelClass}>Company *</label>
-                    <input type="text" placeholder="Company" value={company}
-                        onChange={(e) => setCompany(e.target.value)} required className={inputClass} />
-                </div>
+                <Input label="Job Title *" type="text" placeholder="Job Title" value={title}
+                    onChange={(e) => setTitle(e.target.value)} required />
+                <Input label="Company *" type="text" placeholder="Company" value={company}
+                    onChange={(e) => setCompany(e.target.value)} required />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className={labelClass}>Location *</label>
-                    <input type="text" placeholder="Location" value={location}
-                        onChange={(e) => setLocation(e.target.value)} required className={inputClass} />
-                </div>
-                <div>
-                    <label className={labelClass}>Date Applied *</label>
-                    <input type="date" value={dateApplied}
-                        onChange={(e) => setDateApplied(e.target.value)} required className={inputClass} />
-                </div>
+                <Input label="Location *" type="text" placeholder="Location" value={location}
+                    onChange={(e) => setLocation(e.target.value)} required />
+                <Input label="Date Applied *" type="date" value={dateApplied}
+                    onChange={(e) => setDateApplied(e.target.value)} required />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className={labelClass}>Status</label>
-                    <select value={status} onChange={(e) => setStatus(e.target.value)} required className={inputClass}>
-                        {JOB_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className={labelClass}>Job Type</label>
-                    <select value={jobType} onChange={(e) => setJobType(e.target.value)} required className={inputClass}>
-                        <option value="Full Time">Full Time</option>
-                        <option value="Part Time">Part Time</option>
-                        <option value="Contract">Contract</option>
-                        <option value="Internship">Internship</option>
-                    </select>
-                </div>
+                <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)} required>
+                    {JOB_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </Select>
+                <Select label="Job Type" value={jobType} onChange={(e) => setJobType(e.target.value)} required>
+                    <option value="Full Time">Full Time</option>
+                    <option value="Part Time">Part Time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                </Select>
             </div>
 
-            <div>
-                <label className={labelClass}>Notes</label>
-                <textarea
-                    placeholder="Notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className={`${inputClass} min-h-[80px] resize-y`}
-                />
-            </div>
+            <Textarea
+                label="Notes"
+                placeholder="Notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+            />
 
-            <div>
-                <label className={labelClass}>Source URL</label>
-                <input type="url" placeholder="https://company.com/careers/job-123" value={sourceUrl}
-                    onChange={(e) => setSourceUrl(e.target.value)} className={inputClass} />
-            </div>
+            <Input label="Source URL" type="url" placeholder="https://company.com/careers/job-123" value={sourceUrl}
+                onChange={(e) => setSourceUrl(e.target.value)} />
 
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" variant="primary" loading={loading} className="w-full">
                 {loading ? 'Updating...' : 'Update Job'}
-            </button>
+            </Button>
         </form>
     )
 }

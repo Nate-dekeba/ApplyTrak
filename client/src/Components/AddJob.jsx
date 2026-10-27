@@ -8,6 +8,11 @@ import { useState } from 'react'
 import { API_URL } from '../config.js'
 import { authHeaders } from '../auth.js'
 import { JOB_STATUSES } from '../constants/jobStatuses.js'
+import Input from './ui/Input.jsx'
+import Select from './ui/Select.jsx'
+import Textarea from './ui/Textarea.jsx'
+import Button from './ui/Button.jsx'
+import Badge from './ui/Badge.jsx'
 
 export default function AddJob({ onJobAdded, onUpgradeNeeded, isPro }) {
     const [title, setTitle]           = useState('')
@@ -102,21 +107,18 @@ export default function AddJob({ onJobAdded, onUpgradeNeeded, isPro }) {
         }
     }
 
-    const inputClass = "w-full py-2.5 px-3.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200"
-    const labelClass = "block text-[13px] font-medium text-gray-600 dark:text-gray-400 mb-1.5"
-
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 m-0 mb-1">Add New Job</h2>
+            <h2 className="text-h2 font-bold text-slate-900 dark:text-slate-100 m-0 mb-1">Add New Job</h2>
 
             {error && (
-                <div className="flex items-center justify-between gap-3 text-red-700 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
+                <div className="flex items-center justify-between gap-3 text-error-700 px-3.5 py-2.5 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-control text-sm">
                     <span>{error}</span>
                     {atFreeLimit && onUpgradeNeeded && (
                         <button
                             type="button"
                             onClick={onUpgradeNeeded}
-                            className="shrink-0 text-red-700 dark:text-red-400 font-semibold underline bg-transparent border-none cursor-pointer p-0"
+                            className="shrink-0 text-error-700 dark:text-error-400 font-semibold underline bg-transparent border-none cursor-pointer p-0"
                         >
                             Upgrade
                         </button>
@@ -125,98 +127,71 @@ export default function AddJob({ onJobAdded, onUpgradeNeeded, isPro }) {
             )}
 
             {/* Import from a job link */}
-            <div className="rounded-lg border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 p-3.5">
-                <label className={`${labelClass} flex items-center gap-1.5`}>
+            <div className="rounded-control border border-primary-100 dark:border-primary-900/40 bg-primary-50/50 dark:bg-primary-900/10 p-3.5">
+                <label className="flex items-center gap-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     Paste a job link to auto-fill
-                    {!isPro && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
-                            Pro
-                        </span>
-                    )}
+                    {!isPro && <Badge tone="primary">Pro</Badge>}
                 </label>
                 <div className="flex gap-2">
-                    <input
+                    <Input
                         type="url"
                         placeholder="https://company.com/careers/job-123"
                         value={importUrl}
                         onChange={(e) => setImportUrl(e.target.value)}
-                        className={inputClass}
+                        className="flex-1"
                     />
-                    <button
+                    <Button
                         type="button"
+                        variant="primary"
                         onClick={handleImport}
-                        disabled={importLoading || !importUrl.trim()}
-                        className="shrink-0 px-4 py-2.5 rounded-lg border-none bg-indigo-600 text-white text-sm font-semibold cursor-pointer hover:bg-indigo-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                        loading={importLoading}
+                        disabled={!importUrl.trim()}
+                        className="shrink-0"
                     >
-                        {importLoading ? 'Importing...' : 'Import'}
-                    </button>
+                        Import
+                    </Button>
                 </div>
                 {importNote && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 mb-0">{importNote}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 mb-0">{importNote}</p>
                 )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className={labelClass}>Job Title *</label>
-                    <input type="text" placeholder="e.g. Frontend Engineer" value={title}
-                        onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
-                </div>
-                <div>
-                    <label className={labelClass}>Company *</label>
-                    <input type="text" placeholder="e.g. Stripe" value={company}
-                        onChange={(e) => setCompany(e.target.value)} required className={inputClass} />
-                </div>
+                <Input label="Job Title *" type="text" placeholder="e.g. Frontend Engineer" value={title}
+                    onChange={(e) => setTitle(e.target.value)} required />
+                <Input label="Company *" type="text" placeholder="e.g. Stripe" value={company}
+                    onChange={(e) => setCompany(e.target.value)} required />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className={labelClass}>Location *</label>
-                    <input type="text" placeholder="e.g. Remote" value={location}
-                        onChange={(e) => setLocation(e.target.value)} required className={inputClass} />
-                </div>
-                <div>
-                    <label className={labelClass}>Date Applied *</label>
-                    <input type="date" value={dateApplied}
-                        onChange={(e) => setDateApplied(e.target.value)} required className={inputClass} />
-                </div>
+                <Input label="Location *" type="text" placeholder="e.g. Remote" value={location}
+                    onChange={(e) => setLocation(e.target.value)} required />
+                <Input label="Date Applied *" type="date" value={dateApplied}
+                    onChange={(e) => setDateApplied(e.target.value)} required />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className={labelClass}>Status</label>
-                    <select value={status} onChange={(e) => setStatus(e.target.value)} required className={inputClass}>
-                        {JOB_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className={labelClass}>Job Type</label>
-                    <select value={jobType} onChange={(e) => setJobType(e.target.value)} required className={inputClass}>
-                        <option value="Full Time">Full Time</option>
-                        <option value="Part Time">Part Time</option>
-                        <option value="Contract">Contract</option>
-                        <option value="Internship">Internship</option>
-                    </select>
-                </div>
+                <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)} required>
+                    {JOB_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </Select>
+                <Select label="Job Type" value={jobType} onChange={(e) => setJobType(e.target.value)} required>
+                    <option value="Full Time">Full Time</option>
+                    <option value="Part Time">Part Time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Internship">Internship</option>
+                </Select>
             </div>
 
-            <div>
-                <label className={labelClass}>Notes</label>
-                <textarea
-                    placeholder="Any notes about this application..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className={`${inputClass} min-h-[80px] resize-y`}
-                />
-            </div>
+            <Textarea
+                label="Notes"
+                placeholder="Any notes about this application..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+            />
 
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.35)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" variant="primary" loading={loading} className="w-full">
                 {loading ? 'Adding Job...' : 'Add Job'}
-            </button>
+            </Button>
         </form>
     )
 }

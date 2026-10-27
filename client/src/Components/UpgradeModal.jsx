@@ -5,8 +5,11 @@
  * Paywall, this never blocks access to the rest of the app.
  */
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { API_URL } from '../config.js'
 import { authHeaders, saveSession } from '../auth.js'
+import Logo from './ui/Logo.jsx'
+import Button from './ui/Button.jsx'
 
 const FEATURES = [
   'Unlimited applications — no 25-job cap',
@@ -21,6 +24,7 @@ export default function UpgradeModal({ user, onClose, onUserUpdate }) {
   const hasUsedTrial = !!user?.trialEndsAt
 
   const handleStartTrial = async () => {
+    if (loading) return
     setLoading('trial')
     setError('')
     try {
@@ -40,6 +44,7 @@ export default function UpgradeModal({ user, onClose, onUserUpdate }) {
   }
 
   const handleUpgrade = async (plan) => {
+    if (loading) return
     setLoading(plan)
     setError('')
     try {
@@ -63,64 +68,52 @@ export default function UpgradeModal({ user, onClose, onUserUpdate }) {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-900 rounded-2xl max-w-[440px] w-full p-8 shadow-[0_20px_60px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-gray-100 dark:border-gray-800"
+        className="bg-white dark:bg-slate-900 rounded-modal max-w-[440px] w-full p-8 shadow-soft-md border border-slate-100 dark:border-slate-800 animate-slideIn"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-extrabold text-xl mb-5">
-          A
+        <div className="mb-5">
+          <Logo size="md" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Upgrade to Pro</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        <h2 className="text-h1 font-bold text-slate-900 dark:text-white mb-2">Upgrade to Pro</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
           {hasUsedTrial
             ? "You're on the Free plan. Upgrade for unlimited applications."
             : 'Try Pro free for 14 days — no credit card required.'}
         </p>
 
         {error && (
-          <div className="mb-4 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg text-sm">
+          <div role="alert" aria-live="polite" className="mb-4 px-3.5 py-2.5 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 text-error-700 dark:text-error-400 rounded-control text-sm">
             {error}
           </div>
         )}
 
         <ul className="flex flex-col gap-2.5 mb-6">
           {FEATURES.map((f) => (
-            <li key={f} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
-              <span className="text-indigo-500 font-bold shrink-0 mt-0.5">✓</span> {f}
+            <li key={f} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-400">
+              <Check size={16} className="text-primary-600 shrink-0 mt-0.5" /> {f}
             </li>
           ))}
         </ul>
 
         <div className="flex flex-col gap-2.5">
           {!hasUsedTrial && (
-            <button
-              onClick={handleStartTrial}
-              disabled={!!loading}
-              className="w-full py-3 rounded-xl border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button variant="primary" onClick={handleStartTrial} loading={loading === 'trial'} className="w-full">
               {loading === 'trial' ? 'Starting trial...' : 'Start free 14-day trial'}
-            </button>
+            </Button>
           )}
           <div className="flex gap-2.5">
-            <button
-              onClick={() => handleUpgrade('monthly')}
-              disabled={!!loading}
-              className="flex-1 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button variant="secondary" onClick={() => handleUpgrade('monthly')} loading={loading === 'monthly'} className="flex-1">
               {loading === 'monthly' ? '...' : 'Monthly — $15/mo'}
-            </button>
-            <button
-              onClick={() => handleUpgrade('annual')}
-              disabled={!!loading}
-              className="flex-1 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            </Button>
+            <Button variant="secondary" onClick={() => handleUpgrade('annual')} loading={loading === 'annual'} className="flex-1">
               {loading === 'annual' ? '...' : 'Annual — $99/yr'}
-            </button>
+            </Button>
           </div>
         </div>
 
         <button
           onClick={onClose}
-          className="w-full text-center mt-5 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-transparent border-none cursor-pointer transition-colors duration-150"
+          className="w-full text-center mt-5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-transparent border-none cursor-pointer transition-colors duration-150 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           Maybe later
         </button>

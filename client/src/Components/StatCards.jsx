@@ -6,13 +6,8 @@
  * Response rate = (jobs that got any response) / total
  * where "no response" means still in Applied status.
  */
-
-const STATUS_CONFIG = {
-    Applied:      { color: 'text-blue-500',    bg: 'bg-blue-50' },
-    Interviewing: { color: 'text-amber-500',   bg: 'bg-amber-50' },
-    Offered:      { color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    Rejected:     { color: 'text-red-500',     bg: 'bg-red-50' },
-}
+import Card from './ui/Card.jsx'
+import { STATUS_STYLES } from '../constants/statusStyles.js'
 
 export default function StatCards({ jobs }) {
     // Count jobs per status in a single pass
@@ -27,26 +22,23 @@ export default function StatCards({ jobs }) {
     const responseRate = total > 0 ? Math.round((responded / total) * 100) : 0
 
     const items = [
-        { label: 'Total Sent',   value: total,             colorClass: 'text-indigo-500' },
-        { label: 'Interviewing', value: stats.Interviewing || 0, colorClass: 'text-amber-500' },
-        { label: 'Offers',       value: stats.Offered || 0,      colorClass: 'text-emerald-500' },
-        { label: 'Response Rate', value: `${responseRate}%`,     colorClass: 'text-blue-500' },
+        { label: 'Total Sent',    value: total,                    colorClass: 'text-primary-600' },
+        { label: 'Interviewing',  value: stats.Interviewing || 0,  colorClass: STATUS_STYLES.Interviewing.text },
+        { label: 'Offers',        value: stats.Offered || 0,       colorClass: STATUS_STYLES.Offered.text },
+        { label: 'Response Rate', value: `${responseRate}%`,       colorClass: 'text-slate-700 dark:text-slate-300' },
     ]
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-7">
             {items.map((item) => (
-                <div
-                    key={item.label}
-                    className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-[14px] p-5 relative overflow-hidden"
-                >
-                    <div className="text-[12px] text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wide mb-1.5">
+                <Card key={item.label} padding="md">
+                    <div className="text-caption text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide mb-1.5">
                         {item.label}
                     </div>
                     <div className={`text-[28px] font-bold ${item.colorClass} leading-none`}>
                         {item.value}
                     </div>
-                </div>
+                </Card>
             ))}
         </div>
     )

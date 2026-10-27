@@ -1,55 +1,58 @@
 /**
  * Settings
  * Lets users update their name, change their email (with OTP verification),
- * and change their password.
+ * change their password, and manage their billing plan.
  */
 import { useState } from 'react'
+import { CheckCircle2, CreditCard, User, Mail, Lock, Check, X } from 'lucide-react'
 import { API_URL } from '../config.js'
 import { authHeaders, saveSession } from '../auth.js'
-
-const inputClass = "w-full py-2.5 px-3.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200"
-const labelClass = "block text-[13px] font-medium text-gray-600 dark:text-gray-400 mb-1.5"
+import Card from './ui/Card.jsx'
+import Input from './ui/Input.jsx'
+import Button from './ui/Button.jsx'
+import Badge from './ui/Badge.jsx'
 
 function SuccessBanner({ message }) {
   return (
-    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm">
-      <span>✓</span> {message}
+    <div role="status" aria-live="polite" className="flex items-center gap-2 text-success-700 dark:text-success-400 px-3.5 py-2.5 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-control text-sm">
+      <CheckCircle2 size={16} className="shrink-0" /> {message}
     </div>
   )
 }
 
 function ErrorBanner({ message }) {
   return (
-    <div className="flex items-center gap-2 text-red-700 dark:text-red-400 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm">
+    <div role="alert" aria-live="polite" className="flex items-center gap-2 text-error-700 dark:text-error-400 px-3.5 py-2.5 bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-control text-sm">
       {message}
     </div>
   )
 }
 
-function SectionCard({ title, description, children }) {
+function SectionCard({ icon: Icon, title, description, children }) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
-      <div className="mb-5">
-        <h3 className="text-[15px] font-semibold text-gray-900 dark:text-gray-50 m-0">{title}</h3>
-        <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 m-0">{description}</p>
+    <Card padding="lg">
+      <div className="flex items-start gap-3 mb-5">
+        <div className="w-9 h-9 rounded-control bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-600 dark:text-primary-400 shrink-0">
+          {Icon && <Icon size={17} />}
+        </div>
+        <div>
+          <h3 className="text-h3 font-semibold text-slate-900 dark:text-slate-50 m-0">{title}</h3>
+          <p className="text-body-sm text-slate-400 dark:text-slate-500 mt-0.5 m-0">{description}</p>
+        </div>
       </div>
       {children}
-    </div>
+    </Card>
   )
 }
 
 // ── Billing Section ────────────────────────────────────────────────────────────
-const PLAN_BADGES = {
-  free: { label: 'Free Plan', className: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400' },
-  trialing: { label: 'Pro Trial', className: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' },
-  pro: { label: 'Pro', className: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' },
-}
+const PLAN_BADGE_TONE = { free: 'neutral', trialing: 'info', pro: 'primary' }
+const PLAN_LABEL = { free: 'Free Plan', trialing: 'Pro Trial', pro: 'Pro' }
 
 function BillingSection({ user, onUserUpdate }) {
   const [loading, setLoading] = useState(null) // 'trial' | 'monthly' | 'annual' | 'portal'
   const [error, setError] = useState('')
 
-  const badge = PLAN_BADGES[user.plan] || PLAN_BADGES.free
   const isPaid = user.plan === 'pro'
   const isTrialing = user.plan === 'trialing'
   const trialUsed = !isTrialing && !!user.trialEndsAt // free, but already burned their trial
@@ -59,6 +62,7 @@ function BillingSection({ user, onUserUpdate }) {
     : 0
 
   const handleStartTrial = async () => {
+    if (loading) return
     setLoading('trial')
     setError('')
     try {
@@ -78,6 +82,7 @@ function BillingSection({ user, onUserUpdate }) {
   }
 
   const handleUpgrade = async (plan) => {
+    if (loading) return
     setLoading(plan)
     setError('')
     try {
@@ -96,6 +101,7 @@ function BillingSection({ user, onUserUpdate }) {
   }
 
   const handleManageSubscription = async () => {
+    if (loading) return
     setLoading('portal')
     setError('')
     try {
@@ -113,58 +119,42 @@ function BillingSection({ user, onUserUpdate }) {
   }
 
   return (
-    <SectionCard title="Billing" description="Manage your subscription and plan.">
+    <SectionCard icon={CreditCard} title="Billing" description="Manage your subscription and plan.">
       <div className="flex flex-col gap-4">
         {error && <ErrorBanner message={error} />}
 
         <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>{badge.label}</span>
+          <Badge tone={PLAN_BADGE_TONE[user.plan] || 'neutral'}>{PLAN_LABEL[user.plan] || 'Free Plan'}</Badge>
           {isTrialing && (
-            <span className="text-[13px] text-gray-400 dark:text-gray-500">
+            <span className="text-[13px] text-slate-400 dark:text-slate-500">
               Trial ends {new Date(user.trialEndsAt).toLocaleDateString()} · {daysLeft} day{daysLeft === 1 ? '' : 's'} left
             </span>
           )}
           {trialUsed && (
-            <span className="text-[13px] text-gray-400 dark:text-gray-500">Your trial has ended.</span>
+            <span className="text-[13px] text-slate-400 dark:text-slate-500">Your trial has ended.</span>
           )}
         </div>
 
         {isPaid ? (
           <div className="flex justify-end">
-            <button
-              onClick={handleManageSubscription}
-              disabled={!!loading}
-              className="px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-semibold cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button variant="secondary" onClick={handleManageSubscription} loading={loading === 'portal'}>
               {loading === 'portal' ? 'Opening...' : 'Manage Subscription'}
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {!isTrialing && !trialUsed && (
-              <button
-                onClick={handleStartTrial}
-                disabled={!!loading}
-                className="w-full px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              <Button variant="primary" onClick={handleStartTrial} loading={loading === 'trial'} className="w-full">
                 {loading === 'trial' ? 'Starting trial...' : 'Start free 14-day trial — no card required'}
-              </button>
+              </Button>
             )}
             <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => handleUpgrade('monthly')}
-                disabled={!!loading}
-                className="flex-1 px-5 py-2.5 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 text-sm font-semibold cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              <Button variant="secondary" onClick={() => handleUpgrade('monthly')} loading={loading === 'monthly'} className="flex-1">
                 {loading === 'monthly' ? 'Redirecting...' : 'Subscribe Monthly — $15/mo'}
-              </button>
-              <button
-                onClick={() => handleUpgrade('annual')}
-                disabled={!!loading}
-                className="flex-1 px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              </Button>
+              <Button variant="primary" onClick={() => handleUpgrade('annual')} loading={loading === 'annual'} className="flex-1">
                 {loading === 'annual' ? 'Redirecting...' : 'Subscribe Annually — $99/yr'}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -182,6 +172,7 @@ function ProfileSection({ user, onUserUpdate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (loading) return
     if (name.trim() === user.name) return
     setLoading(true)
     setSuccess('')
@@ -205,38 +196,28 @@ function ProfileSection({ user, onUserUpdate }) {
   }
 
   return (
-    <SectionCard title="Profile" description="Update your display name.">
+    <SectionCard icon={User} title="Profile" description="Update your display name.">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {success && <SuccessBanner message={success} />}
         {error && <ErrorBanner message={error} />}
-        <div>
-          <label className={labelClass}>Full Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>Email</label>
-          <input
-            type="text"
-            value={user.email}
-            disabled
-            className={`${inputClass} opacity-50 cursor-not-allowed`}
-          />
-          <p className="text-[11px] text-gray-400 mt-1">To change your email, use the section below.</p>
-        </div>
+        <Input
+          label="Full Name"
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          required
+        />
+        <Input
+          label="Email"
+          type="text"
+          value={user.email}
+          disabled
+          helperText="To change your email, use the section below."
+        />
         <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={loading || name.trim() === user.name}
-            className="px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" variant="primary" loading={loading} disabled={name.trim() === user.name}>
             {loading ? 'Saving...' : 'Save Changes'}
-          </button>
+          </Button>
         </div>
       </form>
     </SectionCard>
@@ -244,7 +225,7 @@ function ProfileSection({ user, onUserUpdate }) {
 }
 
 // ── Email Change Section ───────────────────────────────────────────────────────
-function EmailSection({ user, onUserUpdate }) {
+function EmailSection({ onUserUpdate }) {
   const [newEmail, setNewEmail] = useState('')
   const [code, setCode] = useState('')
   const [step, setStep] = useState('form') // 'form' | 'verify'
@@ -254,6 +235,7 @@ function EmailSection({ user, onUserUpdate }) {
 
   const handleRequestCode = async (e) => {
     e.preventDefault()
+    if (loading) return
     setLoading(true)
     setSuccess('')
     setError('')
@@ -275,6 +257,7 @@ function EmailSection({ user, onUserUpdate }) {
 
   const handleConfirm = async (e) => {
     e.preventDefault()
+    if (loading) return
     setLoading(true)
     setError('')
     try {
@@ -299,67 +282,54 @@ function EmailSection({ user, onUserUpdate }) {
   }
 
   return (
-    <SectionCard title="Change Email" description="A verification code will be sent to your new email.">
-      {success && <SuccessBanner message={success} />}
+    <SectionCard icon={Mail} title="Change Email" description="A verification code will be sent to your new email.">
+      {success && <div className="mb-4"><SuccessBanner message={success} /></div>}
 
       {step === 'form' ? (
         <form onSubmit={handleRequestCode} className="flex flex-col gap-4">
           {error && <ErrorBanner message={error} />}
-          <div>
-            <label className={labelClass}>New Email Address</label>
-            <input
-              type="email"
-              placeholder="new@email.com"
-              value={newEmail}
-              onChange={e => setNewEmail(e.target.value)}
-              required
-              className={inputClass}
-            />
-          </div>
+          <Input
+            label="New Email Address"
+            type="email"
+            placeholder="new@email.com"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+            required
+          />
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" variant="primary" loading={loading}>
               {loading ? 'Sending...' : 'Send Verification Code'}
-            </button>
+            </Button>
           </div>
         </form>
       ) : (
         <form onSubmit={handleConfirm} className="flex flex-col gap-4">
           {error && <ErrorBanner message={error} />}
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Enter the 6-digit code sent to <strong className="text-gray-700 dark:text-gray-300">{newEmail}</strong>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Enter the 6-digit code sent to <strong className="text-slate-700 dark:text-slate-300">{newEmail}</strong>
           </p>
-          <div>
-            <label className={labelClass}>Verification Code</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="000000"
-              value={code}
-              onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-              required
-              className={`${inputClass} text-center text-xl font-bold tracking-widest`}
-            />
-          </div>
+          <Input
+            label="Verification Code"
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="000000"
+            value={code}
+            onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
+            required
+            className="text-center text-xl font-bold tracking-widest"
+          />
           <div className="flex justify-between items-center">
             <button
               type="button"
               onClick={() => { setStep('form'); setError('') }}
-              className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-transparent border-none cursor-pointer p-0"
+              className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-transparent border-none cursor-pointer p-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             >
               ← Change email
             </button>
-            <button
-              type="submit"
-              disabled={loading || code.length < 6}
-              className="px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" variant="primary" loading={loading} disabled={code.length < 6}>
               {loading ? 'Verifying...' : 'Confirm Change'}
-            </button>
+            </Button>
           </div>
         </form>
       )}
@@ -380,6 +350,7 @@ function PasswordSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (loading) return
     if (newPassword !== confirmPassword) return setError('New passwords do not match.')
     if (newPassword.length < 8) return setError('New password must be at least 8 characters.')
     setLoading(true)
@@ -405,57 +376,48 @@ function PasswordSection() {
   }
 
   return (
-    <SectionCard title="Change Password" description="Enter your current password to set a new one.">
+    <SectionCard icon={Lock} title="Change Password" description="Enter your current password to set a new one.">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {success && <SuccessBanner message={success} />}
         {error && <ErrorBanner message={error} />}
-        <div>
-          <label className={labelClass}>Current Password</label>
-          <input
-            type="password"
-            value={currentPassword}
-            onChange={e => setCurrentPassword(e.target.value)}
-            required
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>New Password</label>
-          <input
-            type="password"
-            placeholder="At least 8 characters"
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            required
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>Confirm New Password</label>
-          <div className="relative">
-            <input
-              type="password"
-              placeholder="Re-enter new password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              required
-              className={`${inputClass} ${confirmPassword.length > 0 ? (passwordsMatch ? 'border-emerald-400 focus:border-emerald-500' : 'border-red-400 focus:border-red-500') : ''}`}
-            />
-            {confirmPassword.length > 0 && (
-              <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold ${passwordsMatch ? 'text-emerald-500' : 'text-red-400'}`}>
-                {passwordsMatch ? '✓' : '✗'}
-              </span>
-            )}
-          </div>
-        </div>
+        <Input
+          label="Current Password"
+          type="password"
+          value={currentPassword}
+          onChange={e => setCurrentPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
+        <Input
+          label="New Password"
+          type="password"
+          placeholder="Create a new password"
+          helperText="At least 8 characters"
+          value={newPassword}
+          onChange={e => setNewPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+        />
+        <Input
+          label="Confirm New Password"
+          type="password"
+          placeholder="Re-enter new password"
+          value={confirmPassword}
+          onChange={e => setConfirmPassword(e.target.value)}
+          required
+          autoComplete="new-password"
+          success={confirmPassword.length > 0 && passwordsMatch}
+          error={confirmPassword.length > 0 && !passwordsMatch ? 'Passwords do not match' : undefined}
+          endAdornment={confirmPassword.length > 0 && (
+            passwordsMatch
+              ? <Check size={16} className="text-success-500" />
+              : <X size={16} className="text-error-500" />
+          )}
+        />
         <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-5 py-2.5 rounded-lg border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold cursor-pointer hover:shadow-[0_4px_16px_rgba(99,102,241,0.3)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" variant="primary" loading={loading}>
             {loading ? 'Updating...' : 'Update Password'}
-          </button>
+          </Button>
         </div>
       </form>
     </SectionCard>
@@ -467,13 +429,13 @@ export default function Settings({ user, onUserUpdate }) {
   return (
     <div className="px-4 md:px-8 py-7 max-w-2xl">
       <div className="mb-6">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-50 m-0">Account Settings</h2>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 m-0">Manage your profile and security preferences.</p>
+        <h2 className="text-h1 font-bold text-slate-900 dark:text-slate-50 m-0">Account Settings</h2>
+        <p className="text-body-sm text-slate-400 dark:text-slate-500 mt-1 m-0">Manage your profile and security preferences.</p>
       </div>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         <BillingSection user={user} onUserUpdate={onUserUpdate} />
         <ProfileSection user={user} onUserUpdate={onUserUpdate} />
-        <EmailSection user={user} onUserUpdate={onUserUpdate} />
+        <EmailSection onUserUpdate={onUserUpdate} />
         <PasswordSection />
       </div>
     </div>

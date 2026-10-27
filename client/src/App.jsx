@@ -12,6 +12,11 @@
  * View modes: 'cards' | 'table' | 'kanban'
  */
 import { useState, useEffect } from 'react'
+import { Menu, Plus, Search, LayoutGrid, Table as TableIcon, Columns3, FileText, SearchX } from 'lucide-react'
+import Button from './Components/ui/Button.jsx'
+import Input from './Components/ui/Input.jsx'
+import Select from './Components/ui/Select.jsx'
+import EmptyState from './Components/ui/EmptyState.jsx'
 import JobCard from './Components/JobCard.jsx'
 import Login from './Components/Login.jsx'
 import Signup from './Components/SignUp.jsx'
@@ -33,6 +38,12 @@ import { API_URL } from './config.js'
 import { getSavedUser, saveSession, clearSession, authHeaders } from './auth.js'
 import { JOB_STATUSES } from './constants/jobStatuses.js'
 import { FREE_JOB_LIMIT, isProActive } from './constants/plans.js'
+
+const VIEW_TOGGLE_OPTIONS = [
+  { mode: 'cards', label: 'Cards', Icon: LayoutGrid },
+  { mode: 'table', label: 'Table', Icon: TableIcon },
+  { mode: 'kanban', label: 'Kanban', Icon: Columns3 },
+]
 
 function getSavedDarkMode() {
   try {
@@ -139,10 +150,6 @@ export default function App() {
     }
   }
 
-  const handleSignup = (userData) => {
-    setUser(userData)
-    setShowWelcome(true)
-  }
   const handleLogin = (userData) => setUser(userData)
 
   const handleLogout = () => {
@@ -269,10 +276,10 @@ export default function App() {
   /* ── Redirecting to checkout after picking a plan on the landing page ── */
   if (checkoutRedirecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Redirecting you to checkout...</p>
+          <div className="w-8 h-8 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Redirecting you to checkout...</p>
         </div>
       </div>
     )
@@ -283,11 +290,11 @@ export default function App() {
 
   /* ── Main app ── */
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Mobile backdrop */}
       {mobileNavOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
           onClick={() => setMobileNavOpen(false)}
         />
       )}
@@ -310,35 +317,31 @@ export default function App() {
       {/* Main content */}
       <main className="flex-1 min-w-0 overflow-auto">
         {/* Top bar */}
-        <header className="flex items-center justify-between px-4 md:px-8 py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
+        <header className="flex items-center justify-between px-4 md:px-8 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             {/* Hamburger — mobile only */}
             <button
-              className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 border-none bg-transparent cursor-pointer"
+              className="md:hidden p-2 rounded-control text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border-none bg-transparent cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               onClick={() => setMobileNavOpen(true)}
               aria-label="Open menu"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
+              <Menu size={20} />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-50 m-0">
+              <h1 className="text-h1 font-bold text-slate-900 dark:text-slate-50 m-0">
                 {activeView === 'analytics' ? 'Analytics' : activeView === 'settings' ? 'Settings' : 'Applications'}
               </h1>
             </div>
           </div>
 
           {activeView === 'applications' && (
-            <button
+            <Button
+              variant="primary"
               onClick={() => (atJobLimit ? setShowUpgradeModal(true) : setShowJobForm(!showJobForm))}
-              className="flex items-center gap-1.5 px-4 md:px-5 py-2.5 rounded-[10px] border-none bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[13px] font-semibold cursor-pointer shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-all duration-200"
             >
-              <span className="text-[17px] leading-none font-normal">+</span>
+              <Plus size={16} strokeWidth={2.5} />
               <span className="hidden sm:inline">Add Job</span>
-            </button>
+            </Button>
           )}
         </header>
 
@@ -350,65 +353,51 @@ export default function App() {
             {/* Toolbar */}
             <div className="flex flex-wrap items-center gap-2.5 mb-5">
               {/* Search */}
-              <div className="flex-1 min-w-[180px] relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <input
+              <div className="flex-1 min-w-[180px]">
+                <Input
                   type="text"
+                  icon={Search}
+                  aria-label="Search applications"
                   placeholder="Search applications..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full py-2.5 pl-9 pr-3.5 rounded-[10px] border border-gray-200 dark:border-gray-700 text-[13px] bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200"
                 />
               </div>
 
               {/* Status filter */}
-              <select
+              <Select
+                aria-label="Filter by status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="py-2.5 px-3.5 rounded-[10px] border border-gray-200 dark:border-gray-700 text-[13px] bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-pointer min-w-[140px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all duration-200"
+                className="min-w-[140px]"
               >
                 <option value="">All Statuses</option>
                 {JOB_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+              </Select>
 
               {/* Result count — shown only when a filter is active */}
               {(statusFilter !== '' || searchQuery !== '') && jobs.length > 0 && (
-                <span className="text-[12px] text-gray-400 dark:text-gray-500 whitespace-nowrap tabular-nums">
+                <span className="text-[12px] text-slate-400 dark:text-slate-500 whitespace-nowrap tabular-nums">
                   {filteredJobs.length} of {jobs.length}
                 </span>
               )}
 
               {/* View toggle */}
-              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-[10px] p-[3px]">
-                {[
-                  {
-                    mode: 'cards', label: 'Cards',
-                    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>,
-                  },
-                  {
-                    mode: 'table', label: 'Table',
-                    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>,
-                  },
-                  {
-                    mode: 'kanban', label: 'Kanban',
-                    icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="5" height="18" rx="1" /><rect x="10" y="3" width="5" height="12" rx="1" /><rect x="17" y="3" width="5" height="15" rx="1" /></svg>,
-                  },
-                ].map(({ mode, label, icon }) => (
+              <div className="flex bg-slate-100 dark:bg-slate-800 rounded-control p-[3px]">
+                {VIEW_TOGGLE_OPTIONS.map((item) => (
                   <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
+                    key={item.mode}
+                    onClick={() => setViewMode(item.mode)}
                     className={[
-                      'flex items-center gap-1 px-3 py-1.5 rounded-lg border-none cursor-pointer text-xs font-semibold transition-all duration-150',
-                      viewMode === mode
-                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                        : 'bg-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400',
+                      'flex items-center gap-1 px-3 py-1.5 rounded-control border-none cursor-pointer text-xs font-semibold transition-all duration-150',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1',
+                      viewMode === item.mode
+                        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-soft-xs'
+                        : 'bg-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400',
                     ].join(' ')}
                   >
-                    {icon}
-                    <span className="hidden sm:inline">{label}</span>
+                    <item.Icon size={14} />
+                    <span className="hidden sm:inline">{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -416,26 +405,26 @@ export default function App() {
 
             {/* Loading / Error */}
             {loading && (
-              <div className="flex items-center gap-2 text-blue-500 text-sm py-3">
-                <div className="w-3.5 h-3.5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+              <div className="flex items-center gap-2 text-primary-600 text-sm py-3">
+                <div className="w-3.5 h-3.5 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
                 Loading jobs...
               </div>
             )}
             {error && (
-              <div className="flex items-center gap-2 text-red-700 px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-lg text-sm mb-4">
+              <div className="flex items-center gap-2 text-error-700 px-3.5 py-2.5 bg-error-50 border border-error-200 rounded-control text-sm mb-4">
                 {error}
               </div>
             )}
 
             {/* Content */}
             {!loading && jobs.length === 0 ? (
-              <div className="text-center py-16 text-gray-400 dark:text-gray-600">
-                <div className="text-[40px] mb-3">📝</div>
-                <p className="text-[15px] font-medium dark:text-gray-400">No jobs tracked yet.</p>
-                <p className="text-[13px] mt-1">
-                  Hit <strong className="text-gray-600 dark:text-gray-300">+ Add Job</strong> to log your first application!
-                </p>
-              </div>
+              <EmptyState
+                icon={FileText}
+                title="No jobs tracked yet."
+                description="Hit Add Job to log your first application!"
+                actionLabel="Add Job"
+                onAction={() => (atJobLimit ? setShowUpgradeModal(true) : setShowJobForm(true))}
+              />
             ) : viewMode === 'kanban' ? (
               <KanbanBoard
                 jobs={filteredJobs}
@@ -443,27 +432,33 @@ export default function App() {
                 onEdit={setEditingJob}
               />
             ) : viewMode === 'table' ? (
-              <div className="bg-white dark:bg-gray-900 rounded-[14px] border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                      {['Position', 'Location', 'Status', 'Type', 'Applied', ''].map((h) => (
-                        <th key={h} className="py-3 px-4 text-left text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-                          {h}
-                        </th>
+              <div className="bg-white dark:bg-slate-900 rounded-card border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse min-w-[640px]">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                        {['Position', 'Location', 'Status', 'Type', 'Applied', ''].map((h) => (
+                          <th key={h} className="py-3 px-4 text-left text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredJobs.map((job) => (
+                        <JobCard key={job.id} job={job} onDelete={handleDeleteJob} onEdit={setEditingJob} viewMode="table" />
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredJobs.map((job) => (
-                      <JobCard key={job.id} job={job} onDelete={handleDeleteJob} onEdit={setEditingJob} viewMode="table" />
-                    ))}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
                 {filteredJobs.length === 0 && (
-                  <div className="text-center py-12 text-gray-400 dark:text-gray-600">
-                    <p className="text-sm font-medium">No applications match your search.</p>
-                  </div>
+                  <EmptyState
+                    icon={SearchX}
+                    title="No applications match your search."
+                    actionLabel="Clear filters"
+                    onAction={() => { setSearchQuery(''); setStatusFilter('') }}
+                    className="py-12"
+                  />
                 )}
               </div>
             ) : (
@@ -474,11 +469,14 @@ export default function App() {
                   ))}
                 </div>
                 {filteredJobs.length === 0 && jobs.length > 0 && (
-                  <div className="text-center py-12 text-gray-400 dark:text-gray-600">
-                    <div className="text-[40px] mb-3">🔍</div>
-                    <p className="text-[15px] font-medium dark:text-gray-400">No applications match your search.</p>
-                    <p className="text-[13px] mt-1">Try a different keyword or clear filters.</p>
-                  </div>
+                  <EmptyState
+                    icon={SearchX}
+                    title="No applications match your search."
+                    description="Try a different keyword or clear filters."
+                    actionLabel="Clear filters"
+                    onAction={() => { setSearchQuery(''); setStatusFilter('') }}
+                    className="py-12"
+                  />
                 )}
               </>
             )}
